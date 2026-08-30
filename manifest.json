@@ -1,0 +1,11 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Guessthetime",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Guess time",
+  "start_url": "/",
+  "theme_color": "#070b19"
+}
