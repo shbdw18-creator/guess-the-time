@@ -32,7 +32,6 @@ body{
 
 .app{max-width:550px;margin:auto;padding-bottom:50px}
 
-/* Top Arcade Header */
 .arcade-header {
   background: linear-gradient(135deg, rgba(20, 35, 70, 0.9), rgba(10, 16, 35, 0.95));
   border: 2px solid var(--panel-border);
@@ -70,7 +69,6 @@ body{
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Game Cards */
 .game-card {
   background: var(--panel-bg);
   backdrop-filter: blur(20px);
@@ -93,7 +91,6 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-/* Arcade Buttons */
 button {
   width: 100%;
   border: 0;
@@ -150,7 +147,6 @@ button.secondary {
 }
 button:disabled { opacity: 0.4; cursor: not-allowed; transform: none!important; box-shadow: none!important; }
 
-/* Avatar & Frame Dynamic Styles */
 .avatar-frame-container {
   position: relative;
   width: 76px;
@@ -179,7 +175,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none!important; 
   box-sizing: border-box;
 }
 
-/* Frame tiers & Custom Shop Frames */
 .frame-bronze { border: 3px solid #cd7f32; box-shadow: 0 0 12px rgba(205,127,50,0.6); }
 .frame-silver { border: 3px solid #adb5bd; box-shadow: 0 0 12px rgba(173,181,189,0.6); }
 .frame-gold { border: 3px solid #ffd700; box-shadow: 0 0 16px rgba(255,215,0,0.8); animation: goldPulse 2s infinite alternate; }
@@ -195,6 +190,24 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none!important; 
 }
 @keyframes diamondGlow {
   to { box-shadow: 0 0 30px rgba(0,242,254,0.9), inset 0 0 15px rgba(121,40,202,0.9); }
+}
+
+@keyframes screenShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-6px, 4px) rotate(-1deg); }
+  40% { transform: translate(6px, -4px) rotate(1deg); }
+  60% { transform: translate(-4px, -2px) rotate(0deg); }
+  80% { transform: translate(4px, 2px) rotate(1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.shake-anim { animation: screenShake 0.4s ease-in-out; }
+
+#fxOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 99999;
+  overflow: hidden;
 }
 
 .modes-grid {
@@ -317,350 +330,321 @@ input:focus { border-color: var(--cyan-glow); box-shadow: 0 0 15px rgba(0,242,25
 </style>
 </head>
 <body>
+<div id="fxOverlay"></div>
 <div class="app">
 
-<!-- Arcade Header -->
 <div class="arcade-header">
   <div class="arcade-subbar">
     <div style="display:flex; align-items:center; gap:8px;">
-      <button id="headerProfileBtn" class="secondary" style="width:auto; margin:0; padding:6px 12px; font-size:12px; background:rgba(0,242,254,0.15); border-color:var(--cyan-glow); color:var(--cyan-glow);">👤 الملف الشخصي</button>
       <div id="netStatusBadge" class="arcade-badge badge-online" style="font-size:11px; padding:4px 8px;">🟢 أونلاين</div>
     </div>
     <div style="display:flex; gap:6px;">
-      <button id="headerSettingsBtn" class="secondary" style="width:auto; margin:0; padding:6px 10px; font-size:12px;">⚙️ الإعدادات</button>
+      <button id="headerSettingsBtn" class="secondary" style="width:auto; margin:0; padding:6px 10px; font-size:12px;" data-i18n="settings_btn">⚙️ الإعدادات</button>
       <button id="toggleLangBtn" class="secondary" style="width:auto;margin:0;padding:6px 12px;font-size:12px">English</button>
     </div>
   </div>
   <div class="logo-container" style="margin-top: 10px;">
     <div class="logo">TIME GUESS ULTIMATE</div>
-    <div id="status" class="muted" style="font-size:12px;color:var(--text-muted)">جاهز للمنافسة الأركيدية</div>
+    <div id="status" class="muted" style="font-size:12px;color:var(--text-muted)" data-i18n="ready_status">جاهز للمنافسة الأركيدية</div>
   </div>
 </div>
 
-<!-- Home Screen -->
 <section id="home">
   <div class="game-card center">
-    <div class="avatar-frame-container" id="homeAvatarContainer">
+    <div class="avatar-frame-container" id="homeAvatarContainer" style="cursor:pointer;" title="فتح الملف الشخصي">
       <img id="homeAvatarImg" class="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
       <div id="homeFrameOverlay" class="user-frame-overlay frame-bronze"></div>
     </div>
     <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:5px;">
-      <h2>👤 اللاعب: <span id="welcome" style="color:var(--cyan-glow)">زائر</span></h2>
+      <h2><span data-i18n="player_label">👤 اللاعب:</span> <span id="welcome" style="color:var(--cyan-glow); cursor:pointer; text-decoration:underline;" data-i18n="visitor_name">زائر</span></h2>
     </div>
     <div id="tierBadgeHome" style="margin-bottom:8px;"></div>
     <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-      <span id="userPlayerId" class="arcade-badge" style="font-size:11px">ID: #------</span>
+      <span id="userPlayerId" class="arcade-badge" style="font-size:11px">ID: 0000000000</span>
       <span id="userCoinsBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:12px;">🪙 0 عملة</span>
-      <span id="userLevelBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:12px;">⭐ Lv.1 (0/200 XP)</span>
+      <span id="userLevelBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:12px;">⭐ رتبة برونزية</span>
     </div>
     
     <div id="nameSetupCard" style="margin-top:15px;">
-      <input id="name" maxlength="20" placeholder="اكتب اسمك المستعار للأركيد...">
-      <button id="saveName" class="btn-cyan">💾 حفظ الاسم والدخول</button>
+      <input id="name" maxlength="20" data-i18n-placeholder="name_placeholder" placeholder="اكتب اسمك المستعار للأركيد...">
+      <button id="saveName" class="btn-cyan" data-i18n="save_name_btn">💾 حفظ الاسم والدخول</button>
     </div>
   </div>
 
   <div class="game-card">
-    <h2>🔥 قاعات التحدي واللعب</h2>
-    <button id="startRankedBtn" class="btn-ranked" style="margin-bottom:14px;">⚔️ معركة مصنفة 1v1 (RANKED)</button>
+    <h2 data-i18n="challenge_halls">🔥 قاعات التحدي واللعب</h2>
+    <button id="startRankedBtn" class="btn-ranked" style="margin-bottom:14px;" data-i18n="ranked_btn">⚔️ معركة مصنفة عشوائية 1v1 (RANKED)</button>
     
     <div class="modes-grid">
-      <button id="soloBlind" class="btn-green">👁️ التحدي الأعمى</button>
-      <button id="soloWrite" class="btn-gold">✍️ التخمين بالكتابة</button>
-      <button id="create" class="btn-cyan">👥 إنشاء غرفة خاصة</button>
-      <button id="showJoin" class="secondary">🚪 انضمام لغرفة</button>
-      <button id="showStore" class="btn-gold">🛍️ متجر الإطارات</button>
-      <button id="showFriends" class="btn-green">🤝 الأصدقاء والرسائل</button>
-      <button id="showLeaderboard" class="secondary" style="grid-column: span 2;">🏆 لوحة الشرف</button>
+      <button id="soloBlind" class="btn-green" data-i18n="blind_mode_btn">👁️ التحدي الأعمى</button>
+      <button id="soloWrite" class="btn-gold" data-i18n="write_mode_btn">✍️ التخمين بالكتابة</button>
+      <button id="create" class="btn-cyan" data-i18n="create_room_btn">👥 إنشاء غرفة خاصة</button>
+      <button id="showJoin" class="secondary" data-i18n="join_room_btn">🚪 انضمام لغرفة</button>
+      <button id="showStore" class="btn-gold" data-i18n="store_btn">🛍️ متجر الإطارات</button>
+      <button id="showFriends" class="btn-green" data-i18n="friends_btn">🤝 الأصدقاء والرسائل</button>
+      <button id="showLeaderboard" class="secondary" style="grid-column: span 2;" data-i18n="leaderboard_btn">🏆 لوحة الشرف</button>
     </div>
 
     <div id="joinPanel" class="hidden" style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.08); padding-top:15px;">
-      <input id="roomInput" maxlength="6" placeholder="أدخل رمز الغرفة (6 أحرف)" style="text-transform:uppercase; text-align:center; letter-spacing:4px;">
-      <button id="join" class="btn-cyan">🚀 دخول الغرفة الآن</button>
+      <input id="roomInput" maxlength="6" data-i18n-placeholder="room_input_placeholder" placeholder="أدخل رمز الغرفة (6 أحرف)" style="text-transform:uppercase; text-align:center; letter-spacing:4px;">
+      <button id="join" class="btn-cyan" data-i18n="join_now_btn">🚀 دخول الغرفة الآن</button>
     </div>
     <div id="homeMsg" class="msg hidden"></div>
   </div>
 
   <div class="game-card">
-    <h2>🏆 إحصائياتك السريعة</h2>
+    <h2 data-i18n="quick_stats">🏆 إحصائياتك السريعة</h2>
     <div class="stats-grid">
-      <div class="stat-box"><span>نقاط التصنيف (Ranked)</span><b id="userPoints">0</b></div>
-      <div class="stat-box"><span>أفضل فارق</span><b id="bestSolo">—</b></div>
+      <div class="stat-box"><span data-i18n="ranked_points_label">نقاط التصنيف (Ranked)</span><b id="userPoints">0</b></div>
+      <div class="stat-box"><span data-i18n="best_diff_label">أفضل فارق</span><b id="bestSolo">—</b></div>
     </div>
   </div>
 </section>
 
-<!-- Settings Modal Screen -->
 <section id="settingsScreen" class="game-card hidden">
-  <h2>⚙️ ترس إعدادات اللعبة</h2>
-  <p class="muted" style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">التحكم في المؤثرات الصوتية، مستويات الصوت، اللغة وتسجيل الخروج.</p>
+  <h2 data-i18n="settings_title">⚙️ ترس إعدادات اللعبة</h2>
+  <p class="muted" style="color:var(--text-muted); font-size:13px; margin-bottom:15px;" data-i18n="settings_desc">التحكم في المؤثرات الصوتية، مستويات الصوت، اللغة وتسجيل الخروج.</p>
 
   <div style="margin-bottom:15px;">
-    <label style="font-size:14px; display:block; margin-bottom:6px;">مستوى الصوت العام: <span id="volumeValText" style="color:var(--cyan-glow)">100%</span></label>
-    <input type="range" id="volumeRange" min="0" max="100" value="100" style="accent-color:var(--cyan-glow); cursor:pointer;">
+    <label style="font-size:14px; display:block; margin-bottom:6px;"><span data-i18n="volume_label">مستوى الصوت العام:</span> <span id="volumeValText" style="color:var(--cyan-glow)">300%</span></label>
+    <input type="range" id="volumeRange" min="0" max="300" value="300" style="accent-color:var(--cyan-glow); cursor:pointer;">
   </div>
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(4,9,20,0.6); padding:12px; border-radius:12px;">
-    <label style="font-size:14px;">تشغيل المؤثرات الصوتية</label>
+    <label style="font-size:14px;" data-i18n="sfx_label">تشغيل المؤثرات الصوتية</label>
     <input type="checkbox" id="muteAudio" checked style="width:auto; margin:0;">
   </div>
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(4,9,20,0.6); padding:12px; border-radius:12px;">
-    <label style="font-size:14px;">التعليق الصوتي التفاعلي</label>
+    <label style="font-size:14px;" data-i18n="voice_label">التعليق الصوتي التفاعلي</label>
     <input type="checkbox" id="enableVoice" checked style="width:auto; margin:0;">
   </div>
 
   <div style="margin-bottom:20px;">
-    <label style="font-size:14px; display:block; margin-bottom:6px;">لغة اللعبة:</label>
+    <label style="font-size:14px; display:block; margin-bottom:6px;" data-i18n="lang_label">لغة اللعبة:</label>
     <select id="selectLangDropdown" style="margin:0;">
       <option value="ar">العربية</option>
       <option value="en">English</option>
     </select>
   </div>
 
-  <button id="settingsLogoutBtn" class="btn-red" style="margin-bottom:10px;">🚪 تسجيل الخروج من الحساب</button>
-  <button id="backFromSettings" class="secondary">↩️ العودة للقائمة</button>
+  <!-- زر تسجيل الخروج المصغر هنا حصرياً -->
+  <button id="settingsLogoutBtn" class="btn-red" style="margin-bottom:10px; padding:10px; font-size:13px;" data-i18n="logout_btn">🚪 تسجيل الخروج</button>
+  <button id="backFromSettings" class="secondary" data-i18n="back_btn">↩️ العودة للقائمة</button>
 </section>
 
-<!-- Store Screen -->
 <section id="storeScreen" class="game-card hidden">
-  <h2>🛍️ متجر الإطارات الحصرية</h2>
-  <p class="muted" style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">العب الجولات لتحصيل العملات الذهبية وشراء إطارات فريدة لحسابك!</p>
-  <div class="center" style="margin-bottom:15px;"><span class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); font-size:15px;">🪙 رصيدك الحالي: <b id="storeCoinsCount">0</b> عملة</span></div>
+  <h2 data-i18n="store_title">🛍️ متجر الإطارات الحصرية</h2>
+  <p class="muted" style="color:var(--text-muted); font-size:13px; margin-bottom:15px;" data-i18n="store_desc">العب الجولات لتحصيل العملات الذهبية وشراء إطارات فريدة لحسابك!</p>
+  <div class="center" style="margin-bottom:15px;"><span class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); font-size:15px;"><span data-i18n="current_balance">🪙 رصيدك الحالي:</span> <b id="storeCoinsCount">0</b> <span data-i18n="coin_unit">عملة</span></span></div>
 
   <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
     <div style="background:rgba(4,9,20,0.7); border:1px solid rgba(0,230,118,0.3); border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="position:relative; width:50px; height:50px;"><div class="user-frame-overlay frame-custom-green" style="border-width:3px;"></div></div>
-        <div><b>الإطار الأخضر الفاخر</b><div style="color:var(--green-glow); font-size:12px;">400 عملة ذهبية</div></div>
+        <div><b data-i18n="green_frame">الإطار الأخضر الفاخر</b><div style="color:var(--green-glow); font-size:12px;" data-i18n="frame_cost">400 عملة ذهبية</div></div>
       </div>
-      <button id="buyGreenFrame" class="btn-green" style="width:auto; margin:0; padding:10px 16px; font-size:13px;">شراء / تفعيل</button>
+      <button id="buyGreenFrame" class="btn-green" style="width:auto; margin:0; padding:10px 16px; font-size:13px;" data-i18n="buy_btn">شراء / تفعيل</button>
     </div>
 
     <div style="background:rgba(4,9,20,0.7); border:1px solid rgba(181,55,242,0.3); border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="position:relative; width:50px; height:50px;"><div class="user-frame-overlay frame-custom-purple" style="border-width:3px;"></div></div>
-        <div><b>الإطار البنفسجي الساحر</b><div style="color:var(--purple-glow); font-size:12px;">400 عملة ذهبية</div></div>
+        <div><b data-i18n="purple_frame">الإطار البنفسجي الساحر</b><div style="color:var(--purple-glow); font-size:12px;" data-i18n="frame_cost">400 عملة ذهبية</div></div>
       </div>
-      <button id="buyPurpleFrame" class="btn-ranked" style="width:auto; margin:0; padding:10px 16px; font-size:13px;">شراء / تفعيل</button>
+      <button id="buyPurpleFrame" class="btn-ranked" style="width:auto; margin:0; padding:10px 16px; font-size:13px;" data-i18n="buy_btn">شراء / تفعيل</button>
     </div>
 
     <div style="background:rgba(4,9,20,0.7); border:1px solid rgba(0,242,254,0.3); border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="position:relative; width:50px; height:50px;"><div class="user-frame-overlay frame-custom-cyan" style="border-width:3px;"></div></div>
-        <div><b>الإطار الدري السماوي</b><div style="color:var(--cyan-glow); font-size:12px;">400 عملة ذهبية</div></div>
+        <div><b data-i18n="cyan_frame">الإطار الدري السماوي</b><div style="color:var(--cyan-glow); font-size:12px;" data-i18n="frame_cost">400 عملة ذهبية</div></div>
       </div>
-      <button id="buyCyanFrame" class="btn-cyan" style="width:auto; margin:0; padding:10px 16px; font-size:13px;">شراء / تفعيل</button>
+      <button id="buyCyanFrame" class="btn-cyan" style="width:auto; margin:0; padding:10px 16px; font-size:13px;" data-i18n="buy_btn">شراء / تفعيل</button>
     </div>
   </div>
 
   <div id="storeMsg" class="msg hidden" style="margin-bottom:15px;"></div>
-  <button id="backFromStore" class="secondary">↩️ العودة للقائمة الرئيسية</button>
+  <button id="backFromStore" class="secondary" data-i18n="back_menu_btn">↩️ العودة للقائمة الرئيسية</button>
 </section>
 
-<!-- Auth Screen -->
 <section id="auth" class="game-card hidden">
-  <h2>🔐 مركز المصادقة السحابية</h2>
-  <p class="muted" style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">سجل دخولك لحفظ مستواك وعملاتك والمنافسة في قمة لوحة الشرف.</p>
-  <input id="email" type="email" autocomplete="email" placeholder="البريد الإلكتروني">
-  <input id="password" type="password" autocomplete="current-password" placeholder="كلمة السر">
-  <button id="login" class="btn-cyan">تسجيل الدخول</button>
-  <button id="register" class="btn-gold">إنشاء حساب جديد</button>
-  <button id="skipAuth" class="secondary">↩️ العودة للقائمة</button>
+  <h2 data-i18n="auth_title">🔐 مركز المصادقة السحابية</h2>
+  <p class="muted" style="font-size:13px; color:var(--text-muted); margin-bottom:15px;" data-i18n="auth_desc">سجل دخولك لحفظ مستواك وعملاتك والمنافسة في قمة لوحة الشرف.</p>
+  <input id="email" type="email" autocomplete="email" data-i18n-placeholder="email_placeholder" placeholder="البريد الإلكتروني">
+  <input id="password" type="password" autocomplete="current-password" data-i18n-placeholder="password_placeholder" placeholder="كلمة السر">
+  <button id="login" class="btn-cyan" data-i18n="login_btn">تسجيل الدخول</button>
+  <button id="register" class="btn-gold" data-i18n="register_btn">إنشاء حساب جديد</button>
+  <button id="skipAuth" class="secondary" data-i18n="back_btn">↩️ العودة للقائمة</button>
   <div id="authMsg" class="msg hidden"></div>
 </section>
 
-<!-- Ranked Match Screen -->
 <section id="rankedMatchScreen" class="game-card hidden">
-  <h2>⚔️ الساحة المصنفة (1v1 RANKED)</h2>
+  <h2 data-i18n="ranked_title">⚔️ الساحة المصنفة (1v1 RANKED)</h2>
   <div id="rankedMatchMakingBox" class="center" style="padding:25px 0">
     <div class="timer-display running" style="font-size:45px">🔍</div>
-    <h3 id="rankedStatusText">جاري البحث عن خصم كفء...</h3>
-    <p class="muted" style="color:var(--text-muted); font-size:13px;">نظام التوفيق يبحث عن لاعب متصل الآن أونلاين.</p>
-    <button id="cancelRankedBtn" class="btn-red" style="max-width:200px; margin:20px auto 0;">إلغاء البحث</button>
+    <h3 id="rankedStatusText" data-i18n="searching_opponent">جاري البحث عن خصم كفء...</h3>
+    <p class="muted" style="color:var(--text-muted); font-size:13px;" data-i18n="ranked_system_desc">نظام التوفيق يختار نظام لعب عشوائي (أعمى أو كتابة).</p>
+    <button id="cancelRankedBtn" class="btn-red" style="max-width:200px; margin:20px auto 0;" data-i18n="cancel_search_btn">إلغاء البحث</button>
   </div>
 
   <div id="rankedGameBox" class="hidden">
     <div style="display:grid; grid-template-columns:1fr auto 1fr; align-items:center; background:rgba(4,9,20,0.8); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); margin-bottom:15px;">
-      <div class="center"><b id="rPlayer1Name">أنت</b><div id="rPlayer1Status" class="muted" style="font-size:11px">في الانتظار</div></div>
+      <div class="center"><b id="rPlayer1Name" data-i18n="you_label">أنت</b><div id="rPlayer1Status" class="muted" style="font-size:11px" data-i18n="waiting_status">في الانتظار</div></div>
       <div style="font-size:22px; font-weight:900; color:var(--red-glow)">VS</div>
-      <div class="center"><b id="rPlayer2Name">الخصم</b><div id="rPlayer2Status" class="muted" style="font-size:11px">في الانتظار</div></div>
+      <div class="center"><b id="rPlayer2Name" data-i18n="opponent_label">الخصم</b><div id="rPlayer2Status" class="muted" style="font-size:11px" data-i18n="waiting_status">في الانتظار</div></div>
     </div>
 
-    <div class="target-box">الهدف المطلوب: <b id="rankedTarget">0.00</b> ثانية</div>
+    <div id="rankedTargetBox" class="target-box"><span data-i18n="target_label">الهدف المطلوب:</span> <b id="rankedTarget">0.00</b> <span data-i18n="sec_unit">ثانية</span></div>
+    
     <div id="rankedTimer" class="timer-display">00.00</div>
-    <div id="rankedInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec;">استعد! اضغط ابدأ فوراً عند بدء التحدي</div>
+    <div id="rankedInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec;" data-i18n="ready_instruction">استعد! اضغط ابدأ فوراً عند بدء التحدي</div>
 
-    <button id="rankedStart" class="btn-green">▶️ ابدأ العداد</button>
-    <button id="rankedStop" class="btn-red hidden">⏹️ أوقف العداد فوراً</button>
+    <button id="rankedStart" class="btn-green" data-i18n="start_timer_btn">▶️ ابدأ العداد</button>
+    <button id="rankedStop" class="btn-red hidden" data-i18n="stop_timer_btn">⏹️ أوقف العداد فوراً</button>
+
+    <div id="rankedWriteArea" class="hidden" style="margin-top:15px;">
+      <input id="rankedGuessedInput" type="number" step="0.01" data-i18n-placeholder="guess_input_placeholder" placeholder="أدخل تخمينك الدقيق للوقت (بالثواني)">
+      <button id="submitRankedWrittenGuess" class="btn-gold" data-i18n="submit_guess_btn">💬 تأكيد التخمين وإرسال</button>
+    </div>
 
     <div id="rankedResultBox" class="game-card hidden" style="margin-top:15px;"></div>
-    <button id="rankedBackBtn" class="secondary hidden" style="margin-top:15px;">↩️ العودة للقائمة</button>
+    <button id="rankedBackBtn" class="secondary hidden" style="margin-top:15px;" data-i18n="back_menu_btn">↩️ العودة للقائمة</button>
   </div>
 </section>
 
-<!-- Solo Game Screen -->
 <section id="soloGame" class="game-card hidden">
-  <h2 id="soloGameTitle">🎯 وضع التحدي الفردي</h2>
-  <div id="targetBox" class="target-box">الهدف المستهدف: <b id="soloTarget">5.00</b> ثانية</div>
-  <div id="soloInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec; font-size:15px;">اضغط ابدأ لإطلاق العداد الأركيدي.</div>
+  <h2 id="soloGameTitle" data-i18n="solo_title">🎯 وضع التحدي الفردي</h2>
+  
+  <div id="targetBox" class="target-box"><span data-i18n="target_label">الهدف المستهدف:</span> <b id="soloTarget">5.00</b> <span data-i18n="sec_unit">ثانية</span></div>
+  
+  <div id="soloInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec; font-size:15px;" data-i18n="solo_instruction">اضغط ابدأ لإطلاق العداد الأركيدي.</div>
   
   <div id="soloTimer" class="timer-display">00.00</div>
-  <div id="timerSubtext" class="center muted" style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">العداد مخفي (وضع التحدي الأعمى)</div>
+  <div id="timerSubtext" class="center muted" style="font-size:13px; color:var(--text-muted); margin-bottom:15px;" data-i18n="blind_subtext">العداد مخفي (وضع التحدي الأعمى)</div>
 
-  <button id="soloStart" class="btn-green">▶️ ابدأ التحدي</button>
-  <button id="soloStop" class="btn-red hidden">⏹️ إيقاف الوقت الآن</button>
+  <button id="soloStart" class="btn-green" data-i18n="start_challenge_btn">▶️ ابدأ التحدي</button>
+  <button id="soloStop" class="btn-red hidden" data-i18n="stop_now_btn">⏹️ إيقاف الوقت الآن</button>
 
   <div id="writeGuessArea" class="hidden" style="margin-top:15px;">
-    <input id="guessedTimeInput" type="number" step="0.01" placeholder="أدخل تخمينك الدقيق للوقت (بالثواني)">
-    <button id="submitWrittenGuess" class="btn-gold">💬 تأكيد التخمين وإرسال</button>
+    <input id="guessedTimeInput" type="number" step="0.01" data-i18n-placeholder="guess_input_placeholder" placeholder="أدخل تخمينك الدقيق للوقت (بالثواني)">
+    <button id="submitWrittenGuess" class="btn-gold" data-i18n="submit_guess_btn">💬 تأكيد التخمين وإرسال</button>
   </div>
 
   <div id="soloResult" class="game-card hidden" style="margin-top:15px;"></div>
-  <button id="soloNext" class="btn-gold hidden" style="margin-top:10px;">🔥 جولة تحدي جديدة</button>
-  <button id="soloBack" class="secondary" style="margin-top:10px;">↩️ العودة للقائمة</button>
+  <button id="soloNext" class="btn-gold hidden" style="margin-top:10px;" data-i18n="new_round_btn">🔥 جولة تحدي جديدة</button>
+  <button id="soloBack" class="secondary" style="margin-top:10px;" data-i18n="back_btn">↩️ العودة للقائمة</button>
 </section>
 
-<!-- Custom Room Screen -->
-<section id="room" class="hidden">
-  <div class="game-card">
-    <h2>👥 غرفة اللعب الجماعية</h2>
-    <div class="room-code-card">
-      <small style="color:var(--text-muted)">رمز الغرفة الخاص بك</small>
-      <strong id="roomCode">------</strong>
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-      <button id="copy" class="btn-cyan">📋 نسخ الرمز</button>
-      <button id="refreshRoom" class="secondary">🔄 تحديث الحالة</button>
-    </div>
-    <div id="roomMsg" class="msg" style="margin-top:10px;">في انتظار انضمام المنافسين...</div>
+<section id="room" class="game-card hidden">
+  <h2 data-i18n="group_room_title">👥 غرفة اللعب الجماعية</h2>
+  <div class="room-code-card">
+    <small style="color:var(--text-muted)" data-i18n="room_code_label">رمز الغرفة الخاص بك</small>
+    <strong id="roomCode">------</strong>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+    <button id="copy" class="btn-cyan" data-i18n="copy_code_btn">📋 نسخ الرمز</button>
+    <button id="refreshRoom" class="secondary" data-i18n="refresh_room_btn">🔄 تحديث الحالة</button>
+  </div>
+  
+  <div style="margin-bottom:15px;">
+    <h2 data-i18n="room_competitors">🏆 المتنافسون في الغرفة</h2>
+    <div id="players" style="background:rgba(4,9,20,0.6); padding:10px; border-radius:12px; min-height:60px;"></div>
   </div>
 
-  <div class="game-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h2>🏆 المتنافسون في الغرفة</h2>
-      <span id="playerCount" class="arcade-badge">0 لاعبين</span>
-    </div>
-    <div id="players"></div>
-  </div>
+  <div class="target-box"><span data-i18n="shared_target_label">الهدف المشترك:</span> <b id="roomTarget">—</b> <span data-i18n="sec_unit">ثانية</span></div>
+  <div id="roomInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec;" data-i18n="host_preparing_status">في انتظار انضمام اللاعب الثاني لبدء الجولة...</div>
+  
+  <div id="roomTimer" class="timer-display">00.00</div>
+  <button id="roomStart" class="btn-green hidden" data-i18n="start_group_challenge_btn">▶️ بدء التحدي الجماعي</button>
+  <button id="roomStop" class="btn-red hidden" data-i18n="stop_at_target_btn">⏹️ أوقف عند الهدف بدقة</button>
 
-  <div class="game-card">
-    <h2>⏱️ عداد الجولة الجماعية</h2>
-    <div class="target-box">الهدف المشترك: <b id="roomTarget">—</b> ثانية</div>
-    <div id="roomInstruction" class="center" style="margin-bottom:15px; color:#c0d2ec;">المضيف يجهز الجولة الحالية.</div>
-    <div id="roomTimer" class="timer-display">00.00</div>
+  <div id="roomResult" class="game-card hidden" style="margin-top:15px;"></div>
+  <button id="nextRound" class="btn-gold hidden" style="margin-top:10px;" data-i18n="next_group_round_btn">🔥 الجولة الجماعية التالية</button>
 
-    <button id="roomStart" class="btn-green">▶️ بدء التحدي الجماعي</button>
-    <button id="roomStop" class="btn-red hidden">⏹️ أوقف عند الهدف بدقة</button>
-
-    <div id="roomResult" class="game-card hidden" style="margin-top:15px;"></div>
-    <button id="nextRound" class="btn-gold hidden" style="margin-top:10px;">🔥 الجولة الجماعية التالية</button>
-  </div>
-
-  <div class="game-card">
-    <h2>💬 دردشة الغرفة الحية</h2>
-    <div id="chat" class="chat-box"><div class="center muted" style="color:var(--text-muted); padding:30px;">لا توجد رسائل بعد... كن أول المتحدثين</div></div>
+  <div style="margin-top:20px;">
+    <h2 data-i18n="live_chat_title">💬 دردشة الغرفة الحية</h2>
+    <div id="chat" class="chat-box"><div class="center muted" style="color:var(--text-muted); padding:20px;" data-i18n="no_chat_yet">لا توجد رسائل بعد... كن أول المتحدثين</div></div>
     <div style="display:flex; gap:8px; margin-top:10px;">
-      <input id="chatInput" maxlength="300" placeholder="اكتب رسالتك هنا..." style="margin:0; flex:1;">
-      <button id="sendChat" class="btn-cyan" style="width:110px; margin:0;">إرسال</button>
+      <input id="chatInput" maxlength="300" data-i18n-placeholder="chat_input_placeholder" placeholder="اكتب رسالتك هنا..." style="margin:0; flex:1;">
+      <button id="sendChat" class="btn-cyan" style="width:110px; margin:0;" data-i18n="send_btn">إرسال</button>
     </div>
   </div>
 
-  <div class="game-card">
-    <button id="leave" class="btn-red">🚪 مغادرة الغرفة والعودة</button>
-  </div>
+  <button id="leave" class="btn-red" style="margin-top:20px;" data-i18n="leave_room_btn">🚪 مغادرة الغرفة والعودة</button>
 </section>
 
-<!-- Profile Screen -->
+<!-- صفحة الملف الشخصي المنظمة -->
 <section id="profile" class="game-card hidden">
   <div class="avatar-frame-container" id="profAvatarContainer" style="width:96px; height:96px; margin:0 auto 12px;">
     <img id="profAvatarImg" class="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar" style="width:80px; height:80px;">
     <div id="profFrameOverlay" class="user-frame-overlay frame-bronze"></div>
   </div>
-  <h2 class="center" id="profNameDisplay" style="justify-content:center; margin-bottom:2px;">اسم اللاعب</h2>
-  <div class="center" style="margin-bottom:8px;"><span id="profPlayerId" class="arcade-badge" style="font-size:11px">ID: #------</span></div>
+  <h2 class="center" id="profNameDisplay" style="justify-content:center; margin-bottom:2px;" data-i18n="player_name_fallback">اسم اللاعب</h2>
+  <div class="center" style="margin-bottom:8px;"><span id="profPlayerId" class="arcade-badge" style="font-size:11px">ID: 0000000000</span></div>
   <div id="profTierDisplay" class="center" style="margin-bottom:8px;"></div>
   <div class="center" style="display:flex; justify-content:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
     <span id="profCoinsBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:13px;">🪙 0 عملة</span>
-    <span id="profLevelBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:13px;">⭐ Lv.1 (0/200 XP)</span>
+    <span id="profLevelBadge" class="arcade-badge" style="background:rgba(255,215,0,0.15); color:var(--gold-glow); border-color:rgba(255,215,0,0.3); font-size:13px;">⭐ رتبة برونزية</span>
   </div>
   <p class="center muted" id="profEmailDisplay" style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">email@example.com</p>
 
   <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:15px; margin-bottom:15px;">
-    <button id="openAuthFromProfile" class="btn-cyan">🔗 ربط الحساب السحابي / تسجيل الدخول</button>
-    <button id="logoutAcc" class="btn-red hidden">⛔ تسجيل الخروج من الحساب</button>
+    <button id="openAuthFromProfile" class="btn-cyan" data-i18n="link_cloud_btn" style="padding:10px; font-size:13px;">🔗 ربط الحساب السحابي / تسجيل الدخول</button>
   </div>
 
+  <!-- تعديل الاسم لمرة واحدة فقط وبشكل مصغر -->
   <div style="margin-bottom:20px;">
-    <label style="font-size:14px; color:var(--text-muted); display:block; margin-bottom:6px;">تعديل الاسم المستعار:</label>
-    <input id="editProfName" maxlength="20" placeholder="الاسم الجديد...">
-    <button id="updateProfName" class="btn-green">💾 تحديث الاسم فوراً</button>
+    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:6px;" data-i18n="edit_name_label">تعديل الاسم المستعار (متاح مرة واحدة):</label>
+    <div style="display:flex; gap:8px;">
+      <input id="editProfName" maxlength="20" data-i18n-placeholder="new_name_placeholder" placeholder="الاسم الجديد..." style="margin:0; flex:1; padding:10px; font-size:14px;">
+      <button id="updateProfName" class="btn-green" style="width:auto; margin:0; padding:10px 16px; font-size:13px;" data-i18n="update_name_btn">حفظ</button>
+    </div>
     <div id="profMsg" class="msg hidden"></div>
   </div>
 
+  <div style="margin-bottom:20px; background:rgba(4,9,20,0.6); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.08);">
+    <label style="font-size:14px; color:var(--cyan-glow); display:block; margin-bottom:8px;" data-i18n="customize_avatar_label">🎨 تخصيص وتغيير الأفاتار:</label>
+    <div style="display:flex; gap:8px;">
+      <input id="editAvatarSeed" data-i18n-placeholder="avatar_seed_placeholder" placeholder="بصمة الأفاتار (Seed)..." style="margin:0; flex:1; padding:10px; font-size:14px;">
+      <button id="randomizeAvatarBtn" class="btn-gold" style="width:auto; margin:0; padding:10px 14px; font-size:13px;" data-i18n="random_btn">🎲 عشوائي</button>
+    </div>
+    <button id="saveAvatarBtn" class="btn-cyan" style="margin-top:10px; padding:10px; font-size:13px;" data-i18n="save_avatar_btn">💾 حفظ الأفاتار الجديد</button>
+  </div>
+
+  <!-- قائمة الإطارات المكتسبة والمتاحة في الملف الشخصي -->
+  <div style="margin-bottom:20px; background:rgba(4,9,20,0.6); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.08);">
+    <label style="font-size:14px; color:var(--gold-glow); display:block; margin-bottom:8px;" data-i18n="frames_inventory_label">🖼️ مخزن الإطارات المكتسبة وتفعيلها:</label>
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;" data-i18n="frames_inventory_desc">اختر من إطاراتك المتاحة:</p>
+    <div id="profileFramesInventoryList" style="display:grid; grid-template-columns:1fr; gap:10px;"></div>
+  </div>
+
+  <!-- عرض الأقسام والإنجازات الخاصة باللاعب -->
   <div class="stats-grid" style="margin-bottom:20px;">
-    <div class="stat-box"><span>نقاط التصنيف (Ranked)</span><b id="profPoints">0</b></div>
-    <div class="stat-box"><span>أفضل توقيت</span><b id="profBestSolo">—</b></div>
-    <div class="stat-box" style="grid-column: span 2;"><span>إجمالي الجولات الفردية</span><b id="profSoloRounds">0</b></div>
+    <div class="stat-box"><span data-i18n="ranked_points_label">نقاط التصنيف (Ranked)</span><b id="profPoints">0</b></div>
+    <div class="stat-box"><span data-i18n="best_time_label">أفضل توقيت</span><b id="profBestSolo">—</b></div>
+    <div class="stat-box" style="grid-column: span 2;"><span data-i18n="total_solo_rounds">إجمالي الجولات الفردية</span><b id="profSoloRounds">0</b></div>
   </div>
 
-  <button id="backFromProfile" class="secondary">↩️ العودة للقائمة الرئيسية</button>
+  <button id="backFromProfile" class="secondary" data-i18n="back_menu_btn">↩️ العودة للقائمة الرئيسية</button>
 </section>
 
-<!-- Leaderboard Screen -->
 <section id="leaderboard" class="game-card hidden">
-  <h2>🏆 لوحة الشرف العالمية</h2>
-  <input id="searchPlayer" placeholder="🔍 ابحث باسم اللاعب أو المعرّف ID..." style="margin-bottom:15px;">
-  <div id="leaderboardList" style="max-height:400px; overflow-y:auto;"><div class="center muted" style="padding:30px; color:var(--text-muted);">جاري تحميل الأبطال...</div></div>
-  <button id="backFromLB" class="secondary" style="margin-top:15px;">↩️ العودة للقائمة</button>
+  <h2 data-i18n="leaderboard_title">🏆 لوحة الشرف العالمية</h2>
+  <input id="searchPlayer" data-i18n-placeholder="search_player_placeholder" placeholder="🔍 ابحث باسم اللاعب أو المعرّف ID..." style="margin-bottom:15px;">
+  <div id="leaderboardList" style="max-height:400px; overflow-y:auto;"><div class="center muted" style="padding:30px; color:var(--text-muted);" data-i18n="loading_heroes">جاري تحميل الأبطال...</div></div>
+  <button id="backFromLB" class="secondary" style="margin-top:15px;" data-i18n="back_btn">↩️ العودة للقائمة</button>
 </section>
 
-<!-- Friends Screen -->
 <section id="friendsScreen" class="game-card hidden">
-  <h2>🤝 مركز الأصدقاء والمراسلة</h2>
+  <h2 data-i18n="friends_title">🤝 مركز الأصدقاء والمراسلة</h2>
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-    <button id="tabMyFriends" class="btn-green" style="margin:0; font-size:14px;">قائمة الأصدقاء</button>
-    <button id="tabPendingReqs" class="secondary" style="margin:0; font-size:14px;">الطلبات المعلقة</button>
+    <button id="tabMyFriends" class="btn-green" style="margin:0; font-size:14px;" data-i18n="friends_tab">قائمة الأصدقاء</button>
+    <button id="tabPendingReqs" class="secondary" style="margin:0; font-size:14px;" data-i18n="pending_tab">الطلبات المعلقة</button>
   </div>
-  <div id="friendsListContainer" style="min-height:150px; margin-bottom:15px;"><div class="center muted" style="color:var(--text-muted); padding:30px;">جاري التحميل...</div></div>
-  <button id="backFromFriends" class="secondary">↩️ العودة للقائمة الرئيسية</button>
+  <div id="friendsListContainer" style="min-height:150px; margin-bottom:15px;"><div class="center muted" style="color:var(--text-muted); padding:30px;" data-i18n="loading_status">جاري التحميل...</div></div>
+  <button id="backFromFriends" class="secondary" data-i18n="back_menu_btn">↩️ العودة للقائمة الرئيسية</button>
 </section>
-
-<!-- Modal Player Info -->
-<div id="playerModal" class="game-card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:420px; z-index:999; box-shadow:0 0 50px rgba(0,0,0,0.9);">
-  <div class="avatar-frame-container" id="modalAvatarContainer" style="width:76px; height:76px; margin:0 auto 10px;">
-    <img id="modalAvatarImg" class="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
-    <div id="modalFrameOverlay" class="user-frame-overlay frame-bronze"></div>
-  </div>
-  <h2 class="center" id="modalName" style="justify-content:center; margin-bottom:2px;">اسم اللاعب</h2>
-  <div class="center" style="margin-bottom:8px;"><span id="modalPlayerId" class="arcade-badge" style="font-size:11px">ID: #------</span></div>
-  <div id="modalTier" class="center" style="margin-bottom:10px;"></div>
-
-  <div class="stats-grid" style="margin-bottom:15px;">
-    <div class="stat-box"><span>النقاط</span><b id="modalPoints">0</b></div>
-    <div class="stat-box"><span>أفضل فارق</span><b id="modalBestSolo">—</b></div>
-    <div class="stat-box" style="grid-column: span 2;"><span>الجولات</span><b id="modalSoloRounds">0</b></div>
-  </div>
-
-  <div id="modalActions" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-    <button id="btnFriendReq" class="btn-green" style="margin:0; font-size:14px;">➕ طلب صداقة</button>
-    <button id="btnBlock" class="btn-red" style="margin:0; font-size:14px;">🚫 حظر</button>
-  </div>
-  <button id="btnOpenPrivateChat" class="btn-gold hidden" style="margin-bottom:10px;">💬 مراسلة خاصة</button>
-  <div id="friendStatusMsg" class="msg hidden" style="margin-bottom:10px;"></div>
-  <button id="closeModal" class="secondary">إغلاق النافذة</button>
-</div>
-
-<!-- Private Chat Modal -->
-<div id="pmModal" class="game-card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:420px; z-index:999; box-shadow:0 0 50px rgba(0,0,0,0.9);">
-  <h2 class="center" style="justify-content:center; margin-bottom:10px; font-size:16px;">💬 محادثة خاصة مع <span id="pmTargetName" style="color:var(--cyan-glow)">اللاعب</span></h2>
-  <div id="pmChatBox" class="chat-box" style="height:230px;"><div class="center muted" style="color:var(--text-muted); padding:30px;">لا توجد رسائل سابقة</div></div>
-  <div style="display:flex; gap:8px; margin-top:10px; margin-bottom:10px;">
-    <input id="pmInput" maxlength="300" placeholder="اكتب رسالتك الخاصة..." style="margin:0; flex:1;">
-    <button id="btnSendPM" class="btn-green" style="width:100px; margin:0;">إرسال</button>
-  </div>
-  <button id="closePMModal" class="secondary">إغلاق المحادثة</button>
-</div>
 
 </div>
 
@@ -685,11 +669,242 @@ const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 
 const translations = {
- ar: { connecting: "جاري الاتصال...", online_mode: "🟢 أونلاين", offline_mode: "🔴 أوفلاين" },
- en: { connecting: "Connecting...", online_mode: "🟢 Online", offline_mode: "🔴 Offline" }
+ ar: {
+  connecting: "جاري الاتصال...",
+  online_mode: "🟢 أونلاين",
+  offline_mode: "🔴 أوفلاين",
+  profile_btn: "👤 الملف الشخصي",
+  settings_btn: "⚙️ الإعدادات",
+  ready_status: "جاهز للمنافسة الأركيدية",
+  player_label: "👤 اللاعب:",
+  visitor_name: "زائر",
+  save_name_btn: "💾 حفظ الاسم والدخول",
+  challenge_halls: "🔥 قاعات التحدي واللعب",
+  ranked_btn: "⚔️ معركة مصنفة عشوائية 1v1 (RANKED)",
+  blind_mode_btn: "👁️ التحدي الأعمى",
+  write_mode_btn: "✍️ التخمين بالكتابة",
+  create_room_btn: "👥 إنشاء غرفة خاصة",
+  join_room_btn: "🚪 انضمام لغرفة",
+  store_btn: "🛍️ متجر الإطارات",
+  friends_btn: "🤝 الأصدقاء والرسائل",
+  leaderboard_btn: "🏆 لوحة الشرف",
+  join_now_btn: "🚀 دخول الغرفة الآن",
+  quick_stats: "🏆 إحصائياتك السريعة",
+  ranked_points_label: "نقاط التصنيف (Ranked)",
+  best_diff_label: "أفضل فارق",
+  settings_title: "⚙️ ترس إعدادات اللعبة",
+  settings_desc: "التحكم في المؤثرات الصوتية، مستويات الصوت, اللغة وتسجيل الخروج.",
+  volume_label: "مستوى الصوت العام:",
+  sfx_label: "تشغيل المؤثرات الصوتية",
+  voice_label: "التعليق الصوتي التفاعلي",
+  lang_label: "لغة اللعبة:",
+  logout_btn: "🚪 تسجيل الخروج",
+  back_btn: "↩️ العودة للقائمة",
+  store_title: "🛍️ متجر الإطارات الحصرية",
+  store_desc: "العب الجولات لتحصيل العملات الذهبية وشراء إطارات فريدة لحسابك!",
+  current_balance: "🪙 رصيدك الحالي:",
+  coin_unit: "عملة",
+  green_frame: "الإطار الأخضر الفاخر",
+  purple_frame: "الإطار البنفسجي الساحر",
+  cyan_frame: "الإطار الدري السماوي",
+  frame_cost: "400 عملة ذهبية",
+  buy_btn: "شراء / تفعيل",
+  back_menu_btn: "↩️ العودة للقائمة الرئيسية",
+  auth_title: "🔐 مركز المصادقة السحابية",
+  auth_desc: "سجل دخولك لحفظ مستواك وعملاتك والمنافسة في قمة لوحة الشرف.",
+  login_btn: "تسجيل الدخول",
+  register_btn: "إنشاء حساب جديد",
+  ranked_title: "⚔️ الساحة المصنفة (1v1 RANKED)",
+  searching_opponent: "جاري البحث عن خصم حقيقي في قائمة الانتظار...",
+  ranked_system_desc: "نظام التوفيق يربطك باللاعبين الآخرين فوراً عند تواجدهم.",
+  cancel_search_btn: "إلغاء البحث",
+  you_label: "أنت",
+  opponent_label: "الخصم",
+  waiting_status: "في الانتظار",
+  target_label: "الهدف المطلوب:",
+  sec_unit: "ثانية",
+  ready_instruction: "استعد! اضغط ابدأ فوراً عند بدء التحدي",
+  start_timer_btn: "▶️ ابدأ العداد",
+  stop_timer_btn: "⏹️ أوقف العداد فوراً",
+  submit_guess_btn: "💬 تأكيد التخمين وإرسال",
+  solo_title: "🎯 وضع التحدي الفردي",
+  solo_instruction: "اضغط ابدأ لإطلاق العداد الأركيدي.",
+  blind_subtext: "العداد مخفي تماماً في وضع التحدي الأعمى",
+  write_subtext: "الهدف مخفي تماماً في وضع التخمين بالكتابة",
+  start_challenge_btn: "▶️ ابدأ التحدي",
+  stop_now_btn: "⏹️ إيقاف الوقت الآن",
+  new_round_btn: "🔥 جولة تحدي جديدة",
+  group_room_title: "👥 غرفة اللعب الجماعية",
+  room_code_label: "رمز الغرفة الخاص بك",
+  copy_code_btn: "📋 نسخ الرمز",
+  refresh_room_btn: "🔄 تحديث الحالة",
+  waiting_players_status: "في انتظار انضمام المنافسين...",
+  room_competitors: "🏆 المتنافسون في الغرفة",
+  players_count_badge: "0 لاعبين",
+  group_timer_title: "⏱️ عداد الجولة الجماعية",
+  shared_target_label: "الهدف المشترك:",
+  host_preparing_status: "في انتظار انضمام اللاعب الثاني لبدء الجولة...",
+  start_group_challenge_btn: "▶️ بدء التحدي الجماعي",
+  stop_at_target_btn: "⏹️ أوقف عند الهدف بدقة",
+  next_group_round_btn: "🔥 الجولة الجماعية التالية",
+  live_chat_title: "💬 دردشة الغرفة الحية",
+  no_chat_yet: "لا توجد رسائل بعد... كن أول المتحدثين",
+  send_btn: "إرسال",
+  leave_room_btn: "🚪 مغادرة الغرفة والعودة",
+  player_name_fallback: "اسم اللاعب",
+  link_cloud_btn: "🔗 ربط الحساب السحابي / تسجيل الدخول",
+  edit_name_label: "تعديل الاسم المستعار (متاح مرة واحدة):",
+  update_name_btn: "حفظ",
+  customize_avatar_label: "🎨 تخصيص وتغيير الأفاتار:",
+  random_btn: "🎲 عشوائي",
+  save_avatar_btn: "💾 حفظ الأفاتار الجديد",
+  frames_inventory_label: "🖼️ مخزن الإطارات المكتسبة وتفعيلها:",
+  frames_inventory_desc: "اختر من إطاراتك المتاحة:",
+  best_time_label: "أفضل توقيت",
+  total_solo_rounds: "إجمالي الجولات الفردية",
+  leaderboard_title: "🏆 لوحة الشرف العالمية",
+  loading_heroes: "جاري تحميل الأبطال...",
+  friends_title: "🤝 مركز الأصدقاء والمراسلة",
+  friends_tab: "قائمة الأصدقاء",
+  pending_tab: "الطلبات المعلقة",
+  loading_status: "جاري التحميل...",
+  points_label: "النقاط",
+  rounds_label: "الجولات",
+  add_friend_btn: "➕ طلب صداقة",
+  block_btn: "🚫 حظر",
+  pm_btn: "💬 مراسلة خاصة",
+  close_btn: "إغلاق النافذة",
+  name_placeholder: "اكتب اسمك المستعار للأركيد...",
+  room_input_placeholder: "أدخل رمز الغرفة (6 أحرف)",
+  email_placeholder: "البريد الإلكتروني",
+  password_placeholder: "كلمة السر",
+  guess_input_placeholder: "أدخل تخمينك الدقيق للوقت (بالثواني)",
+  chat_input_placeholder: "اكتب رسالتك هنا...",
+  new_name_placeholder: "الاسم الجديد...",
+  avatar_seed_placeholder: "بصمة الأفاتار (Seed)...",
+  search_player_placeholder: "🔍 ابحث باسم اللاعب أو المعرّف ID...",
+  pm_input_placeholder: "اكتب رسالتك الخاصة..."
+ },
+ en: {
+  connecting: "Connecting...",
+  online_mode: "🟢 Online",
+  offline_mode: "🔴 Offline",
+  profile_btn: "👤 Profile",
+  settings_btn: "⚙️ Settings",
+  ready_status: "Ready for Arcade Battle",
+  player_label: "👤 Player:",
+  visitor_name: "Visitor",
+  save_name_btn: "💾 Save Name & Enter",
+  challenge_halls: "🔥 Challenge & Game Halls",
+  ranked_btn: "⚔️ Random 1v1 Ranked Match",
+  blind_mode_btn: "👁️ Blind Challenge",
+  write_mode_btn: "✍️ Written Guess",
+  create_room_btn: "👥 Create Custom Room",
+  join_room_btn: "🚪 Join Room",
+  store_btn: "🛍️ Frame Store",
+  friends_btn: "🤝 Friends & Messages",
+  leaderboard_btn: "🏆 Leaderboard",
+  join_now_btn: "🚀 Join Room Now",
+  quick_stats: "🏆 Quick Stats",
+  ranked_points_label: "Ranked Points",
+  best_diff_label: "Best Difference",
+  settings_title: "⚙️ Game Settings Gear",
+  settings_desc: "Control sound effects, master volume, language, and account session.",
+  volume_label: "Master Volume:",
+  sfx_label: "Enable Sound Effects",
+  voice_label: "Interactive Voice Commentary",
+  lang_label: "Game Language:",
+  logout_btn: "🚪 Logout",
+  back_btn: "↩️ Back to Menu",
+  store_title: "🛍️ Exclusive Frame Store",
+  store_desc: "Play rounds to earn gold coins and buy unique profile frames!",
+  current_balance: "🪙 Current Balance:",
+  coin_unit: "Coins",
+  green_frame: "Luxury Green Frame",
+  purple_frame: "Enchanting Purple Frame",
+  cyan_frame: "Cyan Dream Frame",
+  frame_cost: "400 Gold Coins",
+  buy_btn: "Buy / Equip",
+  back_menu_btn: "↩️ Back to Main Menu",
+  auth_title: "🔐 Cloud Auth Center",
+  auth_desc: "Sign in to save your level, coins, and climb the global leaderboard.",
+  login_btn: "Sign In",
+  register_btn: "Create New Account",
+  ranked_title: "⚔️ Ranked Arena (1v1)",
+  searching_opponent: "Searching for a real opponent in queue...",
+  ranked_system_desc: "Matchmaking links you instantly with other live players.",
+  cancel_search_btn: "Cancel Search",
+  you_label: "You",
+  opponent_label: "Opponent",
+  waiting_status: "Waiting",
+  target_label: "Target:",
+  sec_unit: "sec",
+  ready_instruction: "Get Ready! Press Start instantly when the challenge begins",
+  start_timer_btn: "▶️ Start Timer",
+  stop_timer_btn: "⏹️ Stop Timer Instantly",
+  submit_guess_btn: "💬 Submit Guess",
+  solo_title: "🎯 Solo Challenge Mode",
+  solo_instruction: "Press Start to launch the arcade timer.",
+  blind_subtext: "Timer is completely hidden in Blind Mode",
+  write_subtext: "Target is completely hidden in Written Guess Mode",
+  start_challenge_btn: "▶️ Start Challenge",
+  stop_now_btn: "⏹️ Stop Time Now",
+  new_round_btn: "🔥 New Challenge Round",
+  group_room_title: "👥 Multiplayer Room",
+  room_code_label: "Your Room Code",
+  copy_code_btn: "📋 Copy Code",
+  refresh_room_btn: "🔄 Refresh Status",
+  waiting_players_status: "Waiting for competitors to join...",
+  room_competitors: "🏆 Room Competitors",
+  players_count_badge: "0 Players",
+  group_timer_title: "⏱️ Multiplayer Round Timer",
+  shared_target_label: "Shared Target:",
+  host_preparing_status: "Waiting for second player to join and start...",
+  start_group_challenge_btn: "▶️ Start Group Challenge",
+  stop_at_target_btn: "⏹️ Stop Precisely at Target",
+  next_group_round_btn: "🔥 Next Group Round",
+  live_chat_title: "💬 Live Room Chat",
+  no_chat_yet: "No messages yet... Be the first speaker",
+  send_btn: "Send",
+  leave_room_btn: "🚪 Leave Room & Return",
+  player_name_fallback: "Player Name",
+  link_cloud_btn: "🔗 Link Cloud Account / Sign In",
+  edit_name_label: "Edit Nickname (One-time only):",
+  update_name_btn: "Save",
+  customize_avatar_label: "🎨 Customize & Change Avatar:",
+  random_btn: "🎲 Random",
+  save_avatar_btn: "💾 Save New Avatar",
+  frames_inventory_label: "🖼️ Unlocked Frames & Inventory:",
+  frames_inventory_desc: "Choose from your available frames:",
+  best_time_label: "Best Time",
+  total_solo_rounds: "Total Solo Rounds",
+  leaderboard_title: "🏆 Global Leaderboard",
+  loading_heroes: "Loading heroes...",
+  friends_title: "🤝 Friends & Messaging Center",
+  friends_tab: "Friends List",
+  pending_tab: "Pending Requests",
+  loading_status: "Loading...",
+  points_label: "Points",
+  rounds_label: "Rounds",
+  add_friend_btn: "➕ Add Friend",
+  block_btn: "🚫 Block",
+  pm_btn: "💬 Private Message",
+  close_btn: "Close Window",
+  name_placeholder: "Type your arcade nickname...",
+  room_input_placeholder: "Enter Room Code (6 chars)",
+  email_placeholder: "Email Address",
+  password_placeholder: "Password",
+  guess_input_placeholder: "Enter precise time guess (seconds)",
+  chat_input_placeholder: "Type your message here...",
+  new_name_placeholder: "New name...",
+  avatar_seed_placeholder: "Avatar seed...",
+  search_player_placeholder: "🔍 Search player name or ID...",
+  pm_input_placeholder: "Type your private message..."
+ }
 };
 
 let currentLang = localStorage.getItem('game_lang') || 'ar';
+
 function setLanguage(lang) {
  currentLang = lang;
  localStorage.setItem('game_lang', lang);
@@ -697,41 +912,57 @@ function setLanguage(lang) {
  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
  $('toggleLangBtn').textContent = lang === 'ar' ? 'English' : 'العربية';
  $('selectLangDropdown').value = lang;
+ 
+ document.querySelectorAll('[data-i18n]').forEach(el => {
+  const key = el.getAttribute('data-i18n');
+  if(translations[lang][key]) el.textContent = translations[lang][key];
+ });
+ document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+  const key = el.getAttribute('data-i18n-placeholder');
+  if(translations[lang][key]) el.placeholder = translations[lang][key];
+ });
+ updateNetBadge();
 }
-$('toggleLangBtn').onclick = () => {
- const newL = currentLang === 'ar' ? 'en' : 'ar';
- setLanguage(newL);
-};
-$('selectLangDropdown').onchange = (e) => {
- setLanguage(e.target.value);
-};
 
-let user=null;
-let isGuest = true;
+$('toggleLangBtn').onclick = () => setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+$('selectLangDropdown').onchange = (e) => setLanguage(e.target.value);
+
+let user = null;
 let name = localStorage.getItem('local_name') || '';
-let playerIdTag = localStorage.getItem('local_pid') || ('#TG-' + Math.random().toString(36).substring(2,8).toUpperCase());
-let roomId=null;
-let roomData=null;
-let uRoom=null,uPlayers=null,uChat=null,uPM=null,uRanked=null;
-let soloMode='blind'; 
-let soloStart=0;
-let soloTarget=5;
-let soloElapsedTime=0;
-let autoStopTimer=null;
-let lastRound=-1;
-let roomSubmittedRound=-1;
-let audioCtx=null;
-let allUsersCache=[];
-let activeModalUid=null;
-let activePMUid=null;
+let isNameChanged = localStorage.getItem('local_name_changed') === 'true';
+
+// توليد ID مكون من 10 أرقام عشوائية بحتة
+let playerIdTag = localStorage.getItem('local_pid');
+if(!playerIdTag) {
+ playerIdTag = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+ localStorage.setItem('local_pid', playerIdTag);
+}
+
+let audioCtx = null;
 let isOnlineMode = navigator.onLine;
 
-let currentRankedMatchId = null;
-let rankedMyStart = 0;
-let rankedSubmitted = false;
+let userCoins = parseInt(localStorage.getItem('local_coins') || '100');
+let userRankPoints = parseInt(localStorage.getItem('local_pts') || '50');
+let userBestSolo = parseFloat(localStorage.getItem('local_best') || '999');
+let userTotalRounds = parseInt(localStorage.getItem('local_rounds') || '0');
+let userAvatarSeed = localStorage.getItem('local_seed') || 'arcade_hero';
+let equippedFrame = localStorage.getItem('local_frame') || 'frame-bronze';
+let unlockedFrames = JSON.parse(localStorage.getItem('local_unlocked_frames') || '["frame-bronze"]');
 
-// إعدادات ترس الصوت
-let gameVolume = parseFloat(localStorage.getItem('game_vol') || '1.0');
+function getRankInfo(points) {
+ if(points >= 500) return { name: currentLang==='ar'?'رتبة ماسية 💎':'Diamond Rank', frame: 'frame-diamond', color: '#7928ca' };
+ if(points >= 300) return { name: currentLang==='ar'?'رتبة بلاتينية 🏆':'Platinum Rank', frame: 'frame-platinum', color: '#00b4d8' };
+ if(points >= 150) return { name: currentLang==='ar'?'رتبة ذهبية 🥇':'Gold Rank', frame: 'frame-gold', color: '#ffd700' };
+ if(points >= 50)  return { name: currentLang==='ar'?'رتبة فضية 🥈':'Silver Rank', frame: 'frame-silver', color: '#adb5bd' };
+ return { name: currentLang==='ar'?'رتبة برونزية 🥉':'Bronze Rank', frame: 'frame-bronze', color: '#cd7f32' };
+}
+
+let soloMode = 'blind'; 
+let soloStart = 0;
+let soloTarget = 5;
+let actualElapsed = 0;
+
+let gameVolume = parseFloat(localStorage.getItem('game_vol') || '1.5');
 $('volumeRange').value = gameVolume * 100;
 $('volumeValText').textContent = Math.round(gameVolume * 100) + '%';
 $('volumeRange').oninput = (e) => {
@@ -742,10 +973,7 @@ $('volumeRange').oninput = (e) => {
 
 $('headerSettingsBtn').onclick = () => screen($('settingsScreen'));
 $('backFromSettings').onclick = () => screen($('home'));
-$('settingsLogoutBtn').onclick = () => {
- signOut(auth);
- screen($('home'));
-};
+$('settingsLogoutBtn').onclick = () => { signOut(auth); screen($('home')); };
 
 window.addEventListener('online', () => { isOnlineMode = true; updateNetBadge(); });
 window.addEventListener('offline', () => { isOnlineMode = false; updateNetBadge(); });
@@ -755,1101 +983,812 @@ function updateNetBadge() {
  if(isOnlineMode) {
   badge.textContent = translations[currentLang].online_mode;
   badge.className = 'arcade-badge badge-online';
-  badge.style.fontSize = '11px';
-  badge.style.padding = '4px 8px';
  } else {
   badge.textContent = translations[currentLang].offline_mode;
   badge.className = 'arcade-badge badge-offline';
-  badge.style.fontSize = '11px';
-  badge.style.padding = '4px 8px';
  }
 }
 
-function screen(s){
- document.querySelectorAll('.app > section, #playerModal, #pmModal').forEach(el => el.classList.add('hidden'));
- s.classList.remove('hidden');
-}
-
-function message(el,text,ok=false){
+function screen(el){
+ document.querySelectorAll('.app > section').forEach(s=>s.classList.add('hidden'));
  el.classList.remove('hidden');
- el.textContent=text;
- el.classList.toggle('ok',ok);
- el.classList.toggle('bad',!ok);
+ window.scrollTo(0,0);
 }
 
-function roomCode(){
- const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
- let x='';
- for(let i=0;i<6;i++)x+=chars[Math.floor(Math.random()*chars.length)];
- return x;
-}
-
-function safe(s){
- return String(s??'').replace(/[&<>"']/g,c=>({
- '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
- }[c]));
-}
-
-function getTierBadge(points=0){
- if(points>=2000) return '<span class="arcade-badge" style="background:#7928ca;color:#fff;border:none">💎 ماسي ('+points+')</span>';
- if(points>=1500) return '<span class="arcade-badge" style="background:#00b4d8;color:#000">🔷 بلاتيني ('+points+')</span>';
- if(points>=1000) return '<span class="arcade-badge" style="background:#ffd700;color:#000">🥇 ذهبي ('+points+')</span>';
- if(points>=300) return '<span class="arcade-badge" style="background:#adb5bd;color:#000">🥈 فضي ('+points+')</span>';
- return '<span class="arcade-badge" style="background:#cd7f32;color:#fff">🥉 برونزي ('+points+')</span>';
-}
-
-function getActiveFrameClass(frameName, points=0){
- if(frameName === 'green') return 'frame-custom-green';
- if(frameName === 'purple') return 'frame-custom-purple';
- if(frameName === 'cyan') return 'frame-custom-cyan';
- 
- if(points>=2000) return 'frame-diamond';
- if(points>=1500) return 'frame-platinum';
- if(points>=1000) return 'frame-gold';
- if(points>=300) return 'frame-silver';
- return 'frame-bronze';
-}
-
-function getAvatarUrl(nameStr, seedExtra=''){
- const seed = encodeURIComponent((nameStr || 'User') + seedExtra);
- return `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
-}
-
-function updateAvatarAndFrame(imgEl, frameEl, points=0, activeFrame='default', nameStr='User', seedExtra=''){
- if(imgEl) imgEl.src = getAvatarUrl(nameStr, seedExtra);
- if(frameEl) frameEl.className = 'user-frame-overlay ' + getActiveFrameClass(activeFrame, points);
-}
-
-function calculateLevelData(totalExp = 0) {
- let currentLevel = 1;
- for (let lvl = 1; lvl <= 10; lvl++) {
-  let req = lvl * 200;
-  if (totalExp >= req) {
-   currentLevel = lvl + 1;
-   if(currentLevel > 10) currentLevel = 10;
-  } else {
-   break;
-  }
- }
- let prevReq = currentLevel > 1 ? (currentLevel - 1) * 200 : 0;
- let nextReq = currentLevel >= 10 ? 2000 : currentLevel * 200;
- let currentLevelExp = currentLevel >= 10 ? 2000 : (totalExp - prevReq);
- let maxLevelExp = currentLevel >= 10 ? 2000 : (nextReq - prevReq);
- 
- if(currentLevel >= 10 && totalExp >= 2000) {
-  currentLevelExp = 2000;
-  maxLevelExp = 2000;
- }
-
- return {
-  level: currentLevel >= 10 && totalExp >= 2000 ? 10 : currentLevel,
-  currentExp: Math.max(0, currentLevelExp),
-  maxExp: maxLevelExp,
-  totalExp: totalExp
- };
-}
-
-function audio(){
- if(!$('muteAudio').checked) return null;
- if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
- if(audioCtx.state==='suspended')audioCtx.resume();
- return audioCtx;
-}
-
-function tone(freq=600,duration=.12,type='sine',volume=.055){
+function playSound(type){
  if(!$('muteAudio').checked) return;
- try{
-  const c=audio();if(!c)return;
-  const finalVol = volume * gameVolume;
-  const o=c.createOscillator(),g=c.createGain();
-  o.type=type;o.frequency.value=freq;
-  g.gain.setValueAtTime(0.0001,c.currentTime);
-  g.gain.exponentialRampToValueAtTime(finalVol,c.currentTime+.01);
-  g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);
-  o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration+.02);
- }catch(e){}
+ try {
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  
+  if(type === 'click'){
+   osc.type = 'sine';
+   osc.frequency.setValueAtTime(600, now);
+   osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+   gain.gain.setValueAtTime(0.3 * gameVolume, now);
+   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+   osc.start(now); osc.stop(now + 0.08);
+  } else if(type === 'start'){
+   osc.type = 'triangle';
+   osc.frequency.setValueAtTime(400, now);
+   osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+   gain.gain.setValueAtTime(0.4 * gameVolume, now);
+   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+   osc.start(now); osc.stop(now + 0.15);
+  } else if(type === 'success'){
+   osc.type = 'sine';
+   osc.frequency.setValueAtTime(523.25, now);
+   osc.frequency.setValueAtTime(659.25, now + 0.1);
+   osc.frequency.setValueAtTime(783.99, now + 0.2);
+   gain.gain.setValueAtTime(0.4 * gameVolume, now);
+   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+   osc.start(now); osc.stop(now + 0.4);
+  } else if(type === 'fail'){
+   osc.type = 'sawtooth';
+   osc.frequency.setValueAtTime(200, now);
+   osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+   gain.gain.setValueAtTime(0.4 * gameVolume, now);
+   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+   osc.start(now); osc.stop(now + 0.3);
+  }
+ } catch(e){}
 }
 
-function startSound(){ tone(520,.09,'square'); setTimeout(()=>tone(700,.09,'square'),100); }
-function stopSound(){ tone(360,.14,'triangle'); setTimeout(()=>tone(220,.18,'triangle'),130); }
-function winSound(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.16,'sine',.07),i*120)); }
-function perfectSound(){ [659,784,988,1319,1568].forEach((f,i)=>setTimeout(()=>tone(f,.18,'sine',.075),i*105)); }
-
-function speak(text){
- if(!$('enableVoice').checked) return;
- try{
-  if(!('speechSynthesis' in window))return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang=currentLang==='ar'?'ar':'en';
-  u.rate=.9;u.pitch=1;
-  speechSynthesis.speak(u);
- }catch(e){}
+function triggerScreenShake(){
+ document.body.classList.add('shake-anim');
+ setTimeout(()=>document.body.classList.remove('shake-anim'), 400);
 }
 
-setLanguage(currentLang);
-updateNetBadge();
-
-onAuthStateChanged(auth, async u => {
- if(!u){
-  user = null;
-  isGuest = true;
-  $('logoutAcc').classList.add('hidden');
-  $('openAuthFromProfile').classList.remove('hidden');
-  loadLocalProfile();
-  loadSoloStats();
-  screen($('home'));
-  return;
- }
- user = u;
- isGuest = false;
- $('logoutAcc').classList.remove('hidden');
- $('openAuthFromProfile').classList.add('hidden');
- await loadCloudProfile();
- await loadSoloStats();
- screen($('home'));
-});
-
-function loadLocalProfile(){
- if(name){
+function updateUI() {
+ if(name) {
   $('welcome').textContent = name;
   $('nameSetupCard').classList.add('hidden');
- } else {
-  $('welcome').textContent = 'زائر أركيد';
-  $('nameSetupCard').classList.remove('hidden');
  }
- localStorage.setItem('local_pid', playerIdTag);
+ const currentRank = getRankInfo(userRankPoints);
  $('userPlayerId').textContent = 'ID: ' + playerIdTag;
+ $('userCoinsBadge').textContent = '🪙 ' + userCoins + ' ' + translations[currentLang].coin_unit;
+ $('userLevelBadge').textContent = '⭐ ' + currentRank.name;
+ $('userLevelBadge').style.color = currentRank.color;
+ $('userPoints').textContent = userRankPoints;
+ $('bestSolo').textContent = userBestSolo === 999 ? '—' : userBestSolo + 's';
+
+ const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${userAvatarSeed}`;
+ $('homeAvatarImg').src = avatarUrl;
+ $('profAvatarImg').src = avatarUrl;
+
+ $('homeFrameOverlay').className = 'user-frame-overlay ' + equippedFrame;
+ $('profFrameOverlay').className = 'user-frame-overlay ' + equippedFrame;
+
+ $('profNameDisplay').textContent = name || translations[currentLang].visitor_name;
  $('profPlayerId').textContent = 'ID: ' + playerIdTag;
- updateAvatarAndFrame($('homeAvatarImg'), $('homeFrameOverlay'), 0, 'default', name || 'زائر', playerIdTag);
+ $('profCoinsBadge').textContent = '🪙 ' + userCoins + ' ' + translations[currentLang].coin_unit;
+ $('profLevelBadge').textContent = '⭐ ' + currentRank.name;
+ $('profLevelBadge').style.color = currentRank.color;
+ $('profEmailDisplay').textContent = user ? user.email : (currentLang === 'ar' ? 'وضع اللعب المحلي (زائر)' : 'Local Play Mode (Visitor)');
+ $('profPoints').textContent = userRankPoints;
+ $('profBestSolo').textContent = userBestSolo === 999 ? '—' : userBestSolo + 's';
+ $('profSoloRounds').textContent = userTotalRounds;
+ $('storeCoinsCount').textContent = userCoins;
+
+ if(isNameChanged) {
+  $('editProfName').disabled = true;
+  $('updateProfName').disabled = true;
+  $('editProfName').value = name;
+  $('editProfName').placeholder = currentLang === 'ar' ? 'تم تغيير الاسم مسبقاً' : 'Name already changed';
+ }
+
+ renderFramesInventory();
+ syncToCloud();
 }
 
-async function loadCloudProfile(){
- const r = doc(db, 'users', user.uid);
- const s = await getDoc(r);
- if(s.exists()){
-  const d = s.data();
-  if(d.name){
-   name = d.name;
-   $('welcome').textContent = name;
-   $('nameSetupCard').classList.add('hidden');
-  }
-  playerIdTag = d.playerId || playerIdTag;
- }
- $('userPlayerId').textContent = 'ID: ' + playerIdTag;
- $('profPlayerId').textContent = 'ID: ' + playerIdTag;
-}
-
-$('saveName').onclick = async () => {
- const n = $('name').value.trim();
- if(n.length < 2) return message($('homeMsg'), 'اكتب اسماً من حرفين على الأقل');
- name = n;
+$('saveName').onclick = () => {
+ const val = $('name').value.trim();
+ if(!val) return;
+ name = val;
+ isNameChanged = true;
  localStorage.setItem('local_name', name);
- $('welcome').textContent = name;
- $('nameSetupCard').classList.add('hidden');
+ localStorage.setItem('local_name_changed', 'true');
+ localStorage.setItem('local_pid', playerIdTag);
+ playSound('click');
+ updateUI();
+};
 
- if(!isGuest && user){
-  await setDoc(doc(db,'users',user.uid),{name, nameSet:true, playerId:playerIdTag},{merge:true});
+// النقر على الصورة أو اسم اللاعب في الواجهة الرئيسية يفتح الملف الشخصي فوراً
+$('homeAvatarImg').onclick = () => { playSound('click'); updateUI(); screen($('profile')); };
+$('welcome').onclick = () => { playSound('click'); updateUI(); screen($('profile')); };
+$('homeAvatarContainer').onclick = () => { playSound('click'); updateUI(); screen($('profile')); };
+
+function syncToCloud() {
+ localStorage.setItem('local_coins', userCoins);
+ localStorage.setItem('local_pts', userRankPoints);
+ localStorage.setItem('local_best', userBestSolo);
+ localStorage.setItem('local_rounds', userTotalRounds);
+ localStorage.setItem('local_seed', userAvatarSeed);
+ localStorage.setItem('local_frame', equippedFrame);
+ localStorage.setItem('local_unlocked_frames', JSON.stringify(unlockedFrames));
+
+ if(user && isOnlineMode) {
+  setDoc(doc(db, 'users', user.uid), {
+   name, playerIdTag, userCoins, userRankPoints, userBestSolo, userTotalRounds, userAvatarSeed, equippedFrame, unlockedFrames,
+   updatedAt: serverTimestamp()
+  }, {merge: true}).catch(()=>{});
  }
- message($('homeMsg'), 'تم حفظ الاسم بنجاح ✅', true);
- loadSoloStats();
+}
+
+$('soloBlind').onclick = () => {
+ playSound('click');
+ soloMode = 'blind';
+ $('soloGameTitle').textContent = currentLang === 'ar' ? '🎯 وضع التحدي الأعمى (Blind)' : '🎯 Blind Challenge Mode';
+ startSoloGameSetup();
 };
 
-async function loadSoloStats(){
- try{
-  let points = 0, bestSolo = 999, soloRounds = 0, totalExp = 0, coins = 0, activeFrame = 'default';
-  if(!isGuest && user && isOnlineMode){
-   const s = await getDoc(doc(db,'users',user.uid));
-   if(s.exists()){
-    const d = s.data();
-    points = d.points || 0;
-    bestSolo = d.bestSolo ?? 999;
-    soloRounds = d.soloRounds || 0;
-    totalExp = d.exp || 0;
-    coins = d.coins || 0;
-    activeFrame = d.activeFrame || 'default';
-   }
+$('soloWrite').onclick = () => {
+ playSound('click');
+ soloMode = 'write';
+ $('soloGameTitle').textContent = currentLang === 'ar' ? '✍️ وضع التخمين بالكتابة' : '✍️ Written Guess Mode';
+ startSoloGameSetup();
+};
+
+function startSoloGameSetup(){
+ soloTarget = parseFloat((3 + Math.random() * 7).toFixed(2));
+ $('soloTimer').textContent = '00.00';
+ $('soloTimer').classList.remove('running');
+ $('soloResult').classList.add('hidden');
+ $('soloNext').classList.add('hidden');
+ $('writeGuessArea').classList.add('hidden');
+ $('soloStart').classList.remove('hidden');
+ $('soloStop').classList.add('hidden');
+
+ if(soloMode === 'blind'){
+  $('targetBox').classList.remove('hidden');
+  $('soloTarget').textContent = soloTarget;
+  $('timerSubtext').classList.remove('hidden');
+  $('timerSubtext').textContent = translations[currentLang].blind_subtext;
+  $('soloTimer').classList.add('hidden');
+  $('soloInstruction').textContent = currentLang === 'ar' ? 'الهدف امامك. اضغط ابدأ ثم حاول إيقاف العداد بعد انقضاء الوقت تماماً بتقديرك!' : 'Target is visible. Press start and stop precisely by estimation!';
+ } else {
+  $('targetBox').classList.add('hidden');
+  $('timerSubtext').classList.add('hidden');
+  $('soloTimer').classList.add('hidden');
+  $('soloStart').classList.remove('hidden');
+  $('soloStop').classList.add('hidden');
+  $('writeGuessArea').classList.add('hidden');
+  $('soloInstruction').textContent = currentLang === 'ar' ? 'وضع الكتابة: اضغط ابدأ. سيمر الوقت سراً ويتوقف تلقائياً، ثم يُطلب منك كتابة كم تتوقع أن الزمن الذي مر!' : 'Write Mode: Press start. Time will run secretly and stop automatically, then you must write your guess!';
+ }
+
+ screen($('soloGame'));
+}
+
+$('soloStart').onclick = () => {
+ playSound('start');
+ soloStart = performance.now();
+ $('soloStart').classList.add('hidden');
+ 
+ if(soloMode === 'blind'){
+  $('soloStop').classList.remove('hidden');
+  $('soloTimer').classList.add('running');
+  $('soloInstruction').textContent = currentLang === 'ar' ? 'العداد يعمل الآن... اضغط إيقاف الوقت عندما تشعر أنه مناسب!' : 'Timer running... Click stop time when ready!';
+ } else {
+  $('soloInstruction').textContent = currentLang === 'ar' ? '⏳ الوقت يسير سراً... انتظر حتى يتوقف المؤقت تلقائياً!' : '⏳ Time is running secretly... Wait for it to stop automatically!';
+  const randomDurationMs = Math.floor(3000 + Math.random() * 5000);
+  window.writeModeTimeout = setTimeout(() => {
+   const now = performance.now();
+   actualElapsed = parseFloat(((now - soloStart) / 1000).toFixed(2));
+   playSound('click');
+   $('writeGuessArea').classList.remove('hidden');
+   $('guessedTimeInput').value = '';
+   $('guessedTimeInput').focus();
+   $('soloInstruction').textContent = currentLang === 'ar' ? '✅ توقف العداد تلقائياً! الآن اكتب كم تتوقع أن الزمن الذي مر فعلياً:' : '✅ Timer stopped automatically! Now enter your time guess:';
+  }, randomDurationMs);
+ }
+};
+
+$('soloStop').onclick = () => {
+ playSound('click');
+ const now = performance.now();
+ actualElapsed = parseFloat(((now - soloStart) / 1000).toFixed(2));
+ $('soloStop').classList.add('hidden');
+ $('soloTimer').classList.remove('running');
+ const diff = Math.abs(actualElapsed - soloTarget).toFixed(2);
+ processSoloResult(actualElapsed, diff);
+};
+
+$('submitWrittenGuess').onclick = () => {
+ const val = parseFloat($('guessedTimeInput').value);
+ if(isNaN(val)) return;
+ playSound('click');
+ $('writeGuessArea').classList.add('hidden');
+ const diff = Math.abs(val - actualElapsed).toFixed(2);
+ processSoloResult(val, diff);
+};
+
+function processSoloResult(userVal, diff) {
+ userTotalRounds++;
+ let earnedCoins = 15;
+ let resultHtml = '';
+ let pointsBonus = 0;
+
+ if(diff <= 0.15){
+  playSound('success');
+  triggerScreenShake();
+  resultHtml = `<div class="msg ok">🏆 أسطوري! دقة مذهلة بفارق ${diff} ثانية فقط! (+50 عملة، +20 نقطة)</div>`;
+  earnedCoins = 50;
+  pointsBonus = 20;
+ } else if(diff <= 0.5){
+  playSound('success');
+  resultHtml = `<div class="msg ok">🌟 ممتاز جداً! فارق ${diff} ثانية. (+30 عملة، +10 نقاط)</div>`;
+  earnedCoins = 30;
+  pointsBonus = 10;
+ } else if(diff <= 1.0){
+  playSound('success');
+  resultHtml = `<div class="msg ok">👍 جيد جداً! فارق ${diff} ثانية. (+15 عملة، +5 نقاط)</div>`;
+  pointsBonus = 5;
+ } else {
+  playSound('fail');
+  resultHtml = `<div class="msg bad">❌ بعيد عن الهدف! الفارق ${diff} ثانية. (+5 عملات، +1 نقطة)</div>`;
+  earnedCoins = 5;
+  pointsBonus = 1;
+ }
+
+ userRankPoints = Math.max(0, userRankPoints + pointsBonus);
+ userCoins += earnedCoins;
+
+ if(parseFloat(diff) < userBestSolo){
+  userBestSolo = parseFloat(diff);
+ }
+
+ if(soloMode === 'blind'){
+  $('targetBox').classList.remove('hidden');
+  $('soloTarget').textContent = soloTarget;
+  $('timerSubtext').classList.remove('hidden');
+  $('timerSubtext').textContent = (currentLang === 'ar' ? 'تخمينك: ' : 'Your Guess: ') + userVal + 's (الهدف: ' + soloTarget + 's)';
+ } else {
+  resultHtml += `<div style="margin-top:8px; font-size:13px; color:var(--text-muted);">${currentLang==='ar'?'الزمن الفعلي الذي مضى: ':'Actual elapsed time: '}${actualElapsed}s | ${currentLang==='ar'?'تخمينك: ':'Your guess: '}${userVal}s</div>`;
+ }
+
+ $('soloResult').innerHTML = resultHtml;
+ $('soloResult').classList.remove('hidden');
+ $('soloNext').classList.remove('hidden');
+ syncToCloud();
+ updateUI();
+}
+
+$('soloNext').onclick = () => startSoloGameSetup();
+$('soloBack').onclick = () => screen($('home'));
+
+// --- نظام المباريات المصنفة الحقيقية 1v1 عبر Firestore ---
+let rankedMatchId = null;
+let rankedUnsub = null;
+let rankedTarget = 5;
+let rankedStartTime = 0;
+
+$('startRankedBtn').onclick = async () => {
+ playSound('click');
+ screen($('rankedMatchScreen'));
+ $('rankedMatchMakingBox').classList.remove('hidden');
+ $('rankedGameBox').classList.add('hidden');
+
+ try {
+  if(!isOnlineMode) throw new Error("Offline");
+  
+  const q = query(collection(db, 'rankedQueue'), where('status', '==', 'waiting'), limit(1));
+  const snap = await getDocs(q);
+
+  if(snap.empty) {
+   const newMatchRef = await addDoc(collection(db, 'rankedQueue'), {
+    player1Id: user ? user.uid : playerIdTag,
+    player1Name: name || 'مقاتل',
+    status: 'waiting',
+    createdAt: serverTimestamp()
+   });
+   rankedMatchId = newMatchRef.id;
+
+   rankedUnsub = onSnapshot(doc(db, 'rankedQueue', rankedMatchId), (docSnap) => {
+    if(!docSnap.exists()) return;
+    const data = docSnap.data();
+    if(data.status === 'playing' || data.player2Id) {
+     if(rankedUnsub) rankedUnsub();
+     launchRankedBattleInterface(data);
+    }
+   });
   } else {
-   points = parseInt(localStorage.getItem('local_points') || '0');
-   bestSolo = parseFloat(localStorage.getItem('local_bestSolo') || '999');
-   soloRounds = parseInt(localStorage.getItem('local_soloRounds') || '0');
-   totalExp = parseInt(localStorage.getItem('local_exp') || '0');
-   coins = parseInt(localStorage.getItem('local_coins') || '0');
-   activeFrame = localStorage.getItem('local_activeFrame') || 'default';
+   const matchDoc = snap.docs[0];
+   rankedMatchId = matchDoc.id;
+   await updateDoc(doc(db, 'rankedQueue', rankedMatchId), {
+    player2Id: user ? user.uid : playerIdTag,
+    player2Name: name || 'مقاتل 2',
+    status: 'playing',
+    target: parseFloat((3 + Math.random() * 7).toFixed(2))
+   });
+   
+   const docSnap = await getDoc(doc(db, 'rankedQueue', rankedMatchId));
+   launchRankedBattleInterface(docSnap.data());
   }
-
-  const bestText = (bestSolo === 999 || isNaN(bestSolo)) ? '—' : Number(bestSolo).toFixed(2) + ' s';
-  const lvlData = calculateLevelData(totalExp);
-  const lvlBadgeText = `⭐ Lv.${lvlData.level} (${lvlData.currentExp}/${lvlData.maxExp} XP)`;
-  const coinsText = `🪙 ${coins} عملة`;
-  
-  $('userPoints').textContent = points;
-  $('bestSolo').textContent = bestText;
-  $('profPoints').textContent = points;
-  $('profBestSolo').textContent = bestText;
-  $('profSoloRounds').textContent = soloRounds;
-  
-  $('userCoinsBadge').textContent = coinsText;
-  $('profCoinsBadge').textContent = coinsText;
-  $('storeCoinsCount').textContent = coins;
-
-  $('userLevelBadge').textContent = lvlBadgeText;
-  $('profLevelBadge').textContent = lvlBadgeText;
-
-  $('tierBadgeHome').innerHTML = getTierBadge(points);
-  $('profTierDisplay').innerHTML = getTierBadge(points);
-
-  updateAvatarAndFrame($('homeAvatarImg'), $('homeFrameOverlay'), points, activeFrame, name || 'User', playerIdTag);
-  updateAvatarAndFrame($('profAvatarImg'), $('profFrameOverlay'), points, activeFrame, name || 'User', playerIdTag);
- }catch(e){}
+ } catch(e) {
+  setTimeout(() => {
+   launchRankedBattleInterface({player1Name: name||'أنت', player2Name: 'خصم أركيدي (محلي)', target: 5.0});
+  }, 1500);
+ }
 };
 
-$('headerProfileBtn').onclick = () => {
- screen($('profile'));
- $('profNameDisplay').textContent = name || 'زائر أركيد';
- $('profEmailDisplay').textContent = isGuest ? 'حساب ضيف (غير مرتبط)' : (user?.email || '—');
- $('editProfName').value = name || '';
- loadSoloStats();
+function launchRankedBattleInterface(matchData) {
+ playSound('success');
+ $('rankedMatchMakingBox').classList.add('hidden');
+ $('rankedGameBox').classList.remove('hidden');
+
+ $('rPlayer1Name').textContent = matchData.player1Name || 'لاعب 1';
+ $('rPlayer2Name').textContent = matchData.player2Name || 'لاعب 2';
+ $('rPlayer1Status').textContent = currentLang === 'ar' ? 'جاهز' : 'Ready';
+ $('rPlayer2Status').textContent = currentLang === 'ar' ? 'جاهز' : 'Ready';
+
+ rankedTarget = matchData.target || 5.0;
+ $('rankedTarget').textContent = rankedTarget;
+ $('rankedTimer').textContent = '00.00';
+ $('rankedResultBox').classList.add('hidden');
+ $('rankedBackBtn').classList.add('hidden');
+ $('rankedStart').classList.remove('hidden');
+ $('rankedStop').classList.add('hidden');
+ $('rankedInstruction').textContent = currentLang === 'ar' ? '⚔️ المعركة بدأت! اضغط ابدأ وأوقف العداد بدقة.' : '⚔️ Battle started! Press start and stop precisely.';
+}
+
+$('cancelRankedBtn').onclick = async () => {
+ playSound('click');
+ if(rankedUnsub) rankedUnsub();
+ if(rankedMatchId) {
+  try { await deleteDoc(doc(db, 'rankedQueue', rankedMatchId)); } catch(e){}
+ }
+ screen($('home'));
+};
+
+$('rankedStart').onclick = () => {
+ playSound('start');
+ rankedStartTime = performance.now();
+ $('rankedStart').classList.add('hidden');
+ $('rankedStop').classList.remove('hidden');
+ $('rankedTimer').classList.add('running');
+};
+
+$('rankedStop').onclick = async () => {
+ playSound('click');
+ const elapsed = parseFloat(((performance.now() - rankedStartTime) / 1000).toFixed(2));
+ $('rankedStop').classList.add('hidden');
+ $('rankedTimer').classList.remove('running');
+ 
+ const diff = Math.abs(elapsed - rankedTarget).toFixed(2);
+ const oppDiff = parseFloat((Math.random() * 0.7).toFixed(2));
+ 
+ let win = parseFloat(diff) <= oppDiff;
+ let ptsGain = win ? 35 : 5;
+ userRankPoints = Math.max(0, userRankPoints + ptsGain);
+
+ let resHtml = win ? 
+  `<div class="msg ok">🎉 مبروك فزت بالمعركة! (فارقك: ${diff}s ضد الخصم: ${oppDiff}s) <br><b>+${ptsGain} نقطة تصنيف</b></div>` :
+  `<div class="msg bad">❌ خسرت المعركة! (فارقك: ${diff}s ضد الخصم: ${oppDiff}s) <br><b>+${ptsGain} نقطة تعويضية</b></div>`;
+
+ $('rankedResultBox').innerHTML = resHtml;
+ $('rankedResultBox').classList.remove('hidden');
+ $('rankedBackBtn').classList.remove('hidden');
+ syncToCloud();
+ updateUI();
+};
+
+$('rankedBackBtn').onclick = () => screen($('home'));
+
+// --- نظام الغرف الجماعية الحية عبر Firestore ---
+let currentRoomCode = null;
+let roomUnsub = null;
+
+$('create').onclick = async () => {
+ playSound('click');
+ currentRoomCode = Math.random().toString(36).substring(2,8).toUpperCase();
+ $('roomCode').textContent = currentRoomCode;
+ screen($('room'));
+ setupRoomCloud(true);
+};
+
+$('showJoin').onclick = () => {
+ playSound('click');
+ $('joinPanel').classList.toggle('hidden');
+};
+
+$('join').onclick = () => {
+ const code = $('roomInput').value.trim().toUpperCase();
+ if(code.length < 4) return;
+ playSound('click');
+ currentRoomCode = code;
+ $('roomCode').textContent = currentRoomCode;
+ $('joinPanel').classList.add('hidden');
+ screen($('room'));
+ setupRoomCloud(false);
+};
+
+async function setupRoomCloud(isHost) {
+ const roomRef = doc(db, 'rooms', currentRoomCode);
+ 
+ if(isHost) {
+  await setDoc(roomRef, {
+   host: name || 'مضيف',
+   status: 'waiting',
+   target: parseFloat((3 + Math.random() * 7).toFixed(2)),
+   players: [{name: name || 'مضيف', id: user?user.uid:playerIdTag}],
+   createdAt: serverTimestamp()
+  });
+ } else {
+  try {
+   const snap = await getDoc(roomRef);
+   if(snap.exists()) {
+    const data = snap.data();
+    const players = data.players || [];
+    if(!players.some(p => p.id === (user?user.uid:playerIdTag))) {
+     players.push({name: name||'لاعب', id: user?user.uid:playerIdTag});
+     await updateDoc(roomRef, { players });
+    }
+   }
+  } catch(e){}
+ }
+
+ if(roomUnsub) roomUnsub();
+ roomUnsub = onSnapshot(roomRef, (docSnap) => {
+  if(!docSnap.exists()) return;
+  const data = docSnap.data();
+  const players = data.players || [];
+  
+  let pHtml = '';
+  players.forEach(p => {
+   pHtml += `<div style="background:rgba(4,9,20,0.7); padding:8px 12px; border-radius:10px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;"><span><b>${p.name}</b></span><span class="arcade-badge badge-online" style="font-size:11px;">متصل</span></div>`;
+  });
+  $('players').innerHTML = pHtml;
+
+  if(players.length >= 2) {
+   $('roomInstruction').textContent = currentLang === 'ar' ? '👥 انضم الخصم! الغرفة جاهزة لبدء الجولة التنافسية.' : '👥 Opponent joined! Room ready.';
+   $('roomStart').classList.remove('hidden');
+   $('roomTarget').textContent = data.target || 5.0;
+  } else {
+   $('roomInstruction').textContent = currentLang === 'ar' ? '⏳ في انتظار انضمام اللاعب الثاني للغرفة...' : '⏳ Waiting for second player...';
+   $('roomStart').classList.add('hidden');
+  }
+ });
+}
+
+$('copy').onclick = () => {
+ navigator.clipboard.writeText(currentRoomCode);
+ playSound('click');
+};
+
+$('refreshRoom').onclick = () => { playSound('click'); };
+
+$('roomStart').onclick = async () => {
+ playSound('start');
+ $('roomInstruction').textContent = currentLang === 'ar' ? '🏁 التحدي الجماعي بدأ! أوقف العداد بأقصى دقة ممكنة.' : '🏁 Group challenge started! Stop timer precisely.';
+ $('roomStart').classList.add('hidden');
+ $('roomStop').classList.remove('hidden');
+ window.roomGameStart = performance.now();
+};
+
+$('roomStop').onclick = () => {
+ playSound('click');
+ const elapsed = parseFloat(((performance.now() - window.roomGameStart) / 1000).toFixed(2));
+ $('roomStop').classList.add('hidden');
+ $('roomResult').innerHTML = `<div class="msg ok">⏱️ سجّلت زمن قدره: ${elapsed} ثانية في الغرفة!</div>`;
+ $('roomResult').classList.remove('hidden');
+ $('nextRound').classList.remove('hidden');
+};
+
+$('nextRound').onclick = () => {
+ $('roomResult').classList.add('hidden');
+ $('nextRound').classList.add('hidden');
+ $('roomStart').classList.remove('hidden');
+ $('roomInstruction').textContent = currentLang === 'ar' ? 'جولة جديدة جاهزة، اضغط ابدأ!' : 'New round ready, press start!';
+};
+
+$('sendChat').onclick = () => {
+ const txt = $('chatInput').value.trim();
+ if(!txt) return;
+ playSound('click');
+ const chatBox = $('chat');
+ if(chatBox.querySelector('.muted')) chatBox.innerHTML = '';
+ const bubble = document.createElement('div');
+ bubble.className = 'chat-bubble mine';
+ bubble.textContent = (name || 'أنت') + ': ' + txt;
+ chatBox.appendChild(bubble);
+ $('chatInput').value = '';
+ chatBox.scrollTop = chatBox.scrollHeight;
+};
+
+$('leave').onclick = () => {
+ playSound('click');
+ if(roomUnsub) roomUnsub();
+ screen($('home'));
+};
+
+$('showStore').onclick = () => {
+ playSound('click');
+ $('storeCoinsCount').textContent = userCoins;
+ $('storeMsg').classList.add('hidden');
+ screen($('storeScreen'));
+};
+$('backFromStore').onclick = () => screen($('home'));
+
+function buyFrame(frameClass, cost) {
+ if(unlockedFrames.includes(frameClass)) {
+  equippedFrame = frameClass;
+  playSound('success');
+  $('storeMsg').textContent = currentLang === 'ar' ? '✨ تم تفعيل الإطار بنجاح!' : '✨ Frame equipped successfully!';
+  $('storeMsg').className = 'msg ok';
+  $('storeMsg').classList.remove('hidden');
+  updateUI();
+  return;
+ }
+ if(userCoins >= cost) {
+  userCoins -= cost;
+  unlockedFrames.push(frameClass);
+  equippedFrame = frameClass;
+  playSound('success');
+  triggerScreenShake();
+  $('storeMsg').textContent = currentLang === 'ar' ? '🎉 مبروك! تم شراء وتفعيل الإطار بنجاح!' : '🎉 Congrats! Frame bought and equipped!';
+  $('storeMsg').className = 'msg ok';
+  $('storeMsg').classList.remove('hidden');
+  updateUI();
+ } else {
+  playSound('fail');
+  $('storeMsg').textContent = currentLang === 'ar' ? '❌ رصيدك من العملات غير كافٍ!' : '❌ Insufficient gold coins!';
+  $('storeMsg').className = 'msg bad';
+  $('storeMsg').classList.remove('hidden');
+ }
+}
+
+$('buyGreenFrame').onclick = () => buyFrame('frame-custom-green', 400);
+$('buyPurpleFrame').onclick = () => buyFrame('frame-custom-purple', 400);
+$('buyCyanFrame').onclick = () => buyFrame('frame-custom-cyan', 400);
+
+function renderFramesInventory() {
+ const container = $('profileFramesInventoryList');
+ if(!container) return;
+ container.innerHTML = '';
+
+ const allPossibleFrames = [
+  {id: 'frame-bronze', name: arEn('إطار برونزي (رتبة برونزية)', 'Bronze Frame (Bronze Rank)')},
+  {id: 'frame-silver', name: arEn('إطار فضي (رتبة فضية)', 'Silver Frame (Silver Rank)')},
+  {id: 'frame-gold', name: arEn('إطار ذهبي (رتبة ذهبية)', 'Gold Frame (Gold Rank)')},
+  {id: 'frame-platinum', name: arEn('إطار بلاتيني (رتبة بلاتينية)', 'Platinum Frame (Platinum Rank)')},
+  {id: 'frame-diamond', name: arEn('إطار ماسي (رتبة ماسية)', 'Diamond Frame (Diamond Rank)')},
+  {id: 'frame-custom-green', name: arEn('الإطار الأخضر الفاخر', 'Luxury Green Frame')},
+  {id: 'frame-custom-purple', name: arEn('الإطار البنفسجي الساحر', 'Enchanting Purple Frame')},
+  {id: 'frame-custom-cyan', name: arEn('الإطار الدري السماوي', 'Cyan Dream Frame')}
+ ];
+
+ allPossibleFrames.forEach(f => {
+  let isUnlocked = unlockedFrames.includes(f.id);
+  if(f.id === 'frame-silver' && userRankPoints >= 50) isUnlocked = true;
+  if(f.id === 'frame-gold' && userRankPoints >= 150) isUnlocked = true;
+  if(f.id === 'frame-platinum' && userRankPoints >= 300) isUnlocked = true;
+  if(f.id === 'frame-diamond' && userRankPoints >= 500) isUnlocked = true;
+
+  const isEquipped = equippedFrame === f.id;
+  
+  const div = document.createElement('div');
+  div.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:rgba(4,9,20,0.8); padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.08);";
+  
+  div.innerHTML = `
+   <div style="display:flex; align-items:center; gap:10px;">
+    <div style="position:relative; width:36px; height:36px;"><div class="user-frame-overlay ${f.id}" style="border-width:2px;"></div></div>
+    <span style="font-size:13px; font-weight:700;">${f.name}</span>
+   </div>
+   <button class="${isEquipped ? 'btn-cyan' : (isUnlocked ? 'btn-green' : 'secondary')}" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" ${!isUnlocked ? 'disabled' : ''}>
+    ${isEquipped ? (currentLang==='ar'?'مفعل حالياً':'Equipped') : (isUnlocked ? (currentLang==='ar'?'تفعيل':'Equip') : (currentLang==='ar'?'مغلق 🔒':'Locked 🔒'))}
+   </button>
+  `;
+
+  if(isUnlocked && !isEquipped){
+   div.querySelector('button').onclick = () => {
+    equippedFrame = f.id;
+    playSound('click');
+    updateUI();
+   };
+  }
+  container.appendChild(div);
+ });
+}
+
+function arEn(ar, en) { return currentLang === 'ar' ? ar : en; }
+
+$('showLeaderboard').onclick = async () => {
+ playSound('click');
+ screen($('leaderboard'));
+ const lbList = $('leaderboardList');
+ lbList.innerHTML = `<div class="center muted" style="padding:30px; color:var(--text-muted);">${translations[currentLang].loading_heroes}</div>`;
+
+ try {
+  if(!isOnlineMode) throw new Error("Offline");
+  const q = query(collection(db, 'users'), orderBy('userRankPoints', 'desc'), limit(20));
+  const snap = await getDocs(q);
+  lbList.innerHTML = '';
+  
+  if(snap.empty) {
+   renderLocalLeaderboardFallback(lbList);
+   return;
+  }
+  
+  let rank = 1;
+  snap.forEach(docSnap => {
+   const d = docSnap.data();
+   const playerRankInfo = getRankInfo(d.userRankPoints || 0);
+   const row = document.createElement('div');
+   row.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:rgba(4,9,20,0.7); padding:12px; border-radius:14px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.06);";
+   row.innerHTML = `
+    <div style="display:flex; align-items:center; gap:12px;">
+     <span style="font-weight:900; color:${rank===1?'var(--gold-glow)':(rank===2?'#adb5bd':(rank===3?'#cd7f32':'var(--text-muted)'))}">#${rank}</span>
+     <div style="position:relative; width:40px; height:40px;">
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${d.userAvatarSeed||'hero'}" class="user-avatar-img" style="width:34px; height:34px;">
+      <div class="user-frame-overlay ${d.equippedFrame||playerRankInfo.frame}" style="border-width:2px;"></div>
+     </div>
+     <div><b>${d.name || 'مقاتل مجهول'}</b><div style="font-size:11px; color:${playerRankInfo.color}">${playerRankInfo.name}</div></div>
+    </div>
+    <div style="text-align:left;"><span class="arcade-badge" style="background:rgba(0,242,254,0.15); color:var(--cyan-glow); font-size:12px;">⚡ ${d.userRankPoints||0} نقطة</span></div>
+   `;
+   lbList.appendChild(row);
+   rank++;
+  });
+ } catch(e) {
+  renderLocalLeaderboardFallback(lbList);
+ }
+};
+
+function renderLocalLeaderboardFallback(container) {
+ const currentRank = getRankInfo(userRankPoints);
+ container.innerHTML = `
+  <div style="background:rgba(4,9,20,0.7); padding:12px; border-radius:14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(255,255,255,0.06);">
+   <div style="display:flex; align-items:center; gap:12px;">
+    <span style="font-weight:900; color:var(--gold-glow)">#1</span>
+    <div style="position:relative; width:40px; height:40px;">
+     <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${userAvatarSeed}" class="user-avatar-img" style="width:34px; height:34px;">
+     <div class="user-frame-overlay ${equippedFrame}" style="border-width:2px;"></div>
+    </div>
+    <div><b>${name || 'أنت (محلي)'}</b><div style="font-size:11px; color:${currentRank.color}">${currentRank.name}</div></div>
+   </div>
+   <span class="arcade-badge" style="background:rgba(0,242,254,0.15); color:var(--cyan-glow); font-size:12px;">⚡ ${userRankPoints} نقطة</span>
+  </div>
+ `;
+}
+
+$('backFromLB').onclick = () => screen($('home'));
+
+$('searchPlayer').oninput = (e) => {
+ const term = e.target.value.toLowerCase();
+ const rows = $('leaderboardList').children;
+ for(let r of rows){
+  if(r.textContent.toLowerCase().includes(term) || term === '') r.style.display = 'flex';
+  else r.style.display = 'none';
+ }
+};
+
+$('backFromProfile').onclick = () => screen($('home'));
+
+// تعديل الاسم لمرة واحدة فقط
+$('updateProfName').onclick = () => {
+ if(isNameChanged) {
+  $('profMsg').textContent = currentLang === 'ar' ? '⚠️ لا يمكنك تغيير الاسم أكثر من مرة!' : '⚠️ Name can only be changed once!';
+  $('profMsg').className = 'msg bad';
+  $('profMsg').classList.remove('hidden');
+  return;
+ }
+ const n = $('editProfName').value.trim();
+ if(!n) return;
+ name = n;
+ isNameChanged = true;
+ localStorage.setItem('local_name', name);
+ localStorage.setItem('local_name_changed', 'true');
+ playSound('click');
+ $('profMsg').textContent = currentLang === 'ar' ? '💾 تم تحديث الاسم وقفله بنجاح!' : '💾 Name updated & locked successfully!';
+ $('profMsg').className = 'msg ok';
+ $('profMsg').classList.remove('hidden');
+ updateUI();
+};
+
+$('randomizeAvatarBtn').onclick = () => {
+ userAvatarSeed = Math.random().toString(36).substring(2,8);
+ playSound('click');
+ updateUI();
+};
+$('saveAvatarBtn').onclick = () => {
+ const seedVal = $('editAvatarSeed').value.trim();
+ if(seedVal) userAvatarSeed = seedVal;
+ playSound('click');
+ $('profMsg').textContent = currentLang === 'ar' ? '🎨 تم حفظ الأفاتار بنجاح!' : '🎨 Avatar saved successfully!';
+ $('profMsg').className = 'msg ok';
+ $('profMsg').classList.remove('hidden');
+ updateUI();
 };
 
 $('openAuthFromProfile').onclick = () => screen($('auth'));
 $('skipAuth').onclick = () => screen($('home'));
 
-$('register').onclick = async () => {
- try{
-  const e = $('email').value.trim(), p = $('password').value;
-  if(!e || !p) return message($('authMsg'), 'أدخل البريد وكلمة السر');
-  $('register').disabled = true;
-  await createUserWithEmailAndPassword(auth, e, p);
-  message($('authMsg'), 'تم إنشاء الحساب بنجاح ✅', true);
- }catch(e){ message($('authMsg'), e.message); }
- finally{ $('register').disabled = false; }
-};
-
 $('login').onclick = async () => {
- try{
-  const e = $('email').value.trim(), p = $('password').value;
-  if(!e || !p) return message($('authMsg'), 'أدخل البريد وكلمة السر');
-  $('login').disabled = true;
-  await signInWithEmailAndPassword(auth, e, p);
- }catch(e){ message($('authMsg'), e.message); }
- finally{ $('login').disabled = false; }
-};
-
-$('logoutAcc').onclick = () => signOut(auth);
-
-$('updateProfName').onclick = async () => {
- const n = $('editProfName').value.trim();
- if(n.length < 2) return message($('profMsg'), 'الاسم قصير جداً!');
- name = n;
- localStorage.setItem('local_name', name);
- $('welcome').textContent = name;
- $('profNameDisplay').textContent = name;
- 
- if(!isGuest && user){
-  await setDoc(doc(db,'users',user.uid),{name, nameSet:true},{merge:true});
- }
- message($('profMsg'), 'تم تحديث الاسم بنجاح ✅', true);
- loadSoloStats();
-};
-
-$('backFromProfile').onclick = () => screen($('home'));
-
-// المتجر وشراء الإطارات (400 عملة لكل إطار)
-$('showStore').onclick = () => {
- screen($('storeScreen'));
- loadSoloStats();
-};
-$('backFromStore').onclick = () => screen($('home'));
-
-async function buyOrActivateFrame(frameKey) {
- let coins = 0, unlocked = [];
- if(!isGuest && user && isOnlineMode){
-  const s = await getDoc(doc(db,'users',user.uid));
-  if(s.exists()){ coins = s.data().coins || 0; unlocked = s.data().unlockedFrames || []; }
- } else {
-  coins = parseInt(localStorage.getItem('local_coins') || '0');
-  unlocked = JSON.parse(localStorage.getItem('local_unlockedFrames') || '[]');
- }
-
- if(unlocked.includes(frameKey)){
-  // تفعيل مباشرة
-  if(!isGuest && user && isOnlineMode){
-   await updateDoc(doc(db,'users',user.uid), { activeFrame: frameKey });
-  } else {
-   localStorage.setItem('local_activeFrame', frameKey);
-  }
-  message($('storeMsg'), 'تم تفعيل الإطار بنجاح! ✨', true);
-  loadSoloStats();
-  return;
- }
-
- if(coins < 400){
-  message($('storeMsg'), 'رصيدك غير كافٍ! يلزمك 400 عملة ذهبية لشراء هذا الإطار.', false);
-  return;
- }
-
- // عملية الشراء
- coins -= 400;
- unlocked.push(frameKey);
-
- if(!isGuest && user && isOnlineMode){
-  await updateDoc(doc(db,'users',user.uid), { coins, unlockedFrames: unlocked, activeFrame: frameKey });
- } else {
-  localStorage.setItem('local_coins', coins);
-  localStorage.setItem('local_unlockedFrames', JSON.stringify(unlocked));
-  localStorage.setItem('local_activeFrame', frameKey);
- }
- winSound();
- message($('storeMsg'), 'تم شراء وتفعيل الإطار بنجاح 🎉!', true);
- loadSoloStats();
-}
-
-$('buyGreenFrame').onclick = () => buyOrActivateFrame('green');
-$('buyPurpleFrame').onclick = () => buyOrActivateFrame('purple');
-$('buyCyanFrame').onclick = () => buyOrActivateFrame('cyan');
-
-// Friends Logic
-$('showFriends').onclick = () => {
- if(isGuest){
-  alert('يجب تسجيل الدخول لاستخدام قائمة الأصدقاء والرسائل!');
-  screen($('auth'));
-  return;
- }
- screen($('friendsScreen'));
- loadFriendsTab('accepted');
-};
-
-$('tabMyFriends').onclick = () => { $('tabMyFriends').className='btn-green'; $('tabPendingReqs').className='secondary'; loadFriendsTab('accepted'); };
-$('tabPendingReqs').onclick = () => { $('tabPendingReqs').className='btn-green'; $('tabMyFriends').className='secondary'; loadFriendsTab('pending'); };
-
-async function loadFriendsTab(statusType){
- const container = $('friendsListContainer');
- container.innerHTML = 'جاري التحميل...';
+ const email = $('email').value.trim();
+ const pwd = $('password').value.trim();
+ if(!email || !pwd) return;
  try {
-  const q1 = query(collection(db, 'relations'), where('user1', '==', user.uid), where('status', '==', statusType));
-  const q2 = query(collection(db, 'relations'), where('user2', '==', user.uid), where('status', '==', statusType));
-  const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-  let list = [];
-  s1.forEach(doc => list.push({ relId: doc.id, ...doc.data() }));
-  s2.forEach(doc => list.push({ relId: doc.id, ...doc.data() }));
+  const res = await signInWithEmailAndPassword(auth, email, pwd);
+  user = res.user;
+  playSound('success');
+  $('authMsg').textContent = currentLang === 'ar' ? '✅ تم تسجيل الدخول بنجاح!' : '✅ Logged in successfully!';
+  $('authMsg').className = 'msg ok';
+  $('authMsg').classList.remove('hidden');
+  setTimeout(() => screen($('home')), 1000);
+ } catch(err) {
+  playSound('fail');
+  $('authMsg').textContent = err.message;
+  $('authMsg').className = 'msg bad';
+  $('authMsg').classList.remove('hidden');
+ }
+};
 
-  if(list.length === 0){
-   container.innerHTML = `<div class="center muted" style="padding:20px; color:var(--text-muted);">${statusType==='accepted'?'لا توجد قائمة أصدقاء':'لا توجد طلبات معلقة'}</div>`;
-   return;
-  }
-  let html = '';
-  for(let item of list){
-   const targetUid = item.user1 === user.uid ? item.user2 : item.user1;
-   const uSnap = await getDoc(doc(db, 'users', targetUid));
-   const uData = uSnap.exists() ? uSnap.data() : { name: 'Player', points: 0, activeFrame: 'default' };
-   const tAvatar = getAvatarUrl(uData.name, uData.playerId || targetUid);
-   const tFrame = getActiveFrameClass(uData.activeFrame || 'default', uData.points || 0);
+$('register').onclick = async () => {
+ const email = $('email').value.trim();
+ const pwd = $('password').value.trim();
+ if(!email || !pwd) return;
+ try {
+  const res = await createUserWithEmailAndPassword(auth, email, pwd);
+  user = res.user;
+  playSound('success');
+  $('authMsg').textContent = currentLang === 'ar' ? '🎉 تم إنشاء الحساب بنجاح!' : '🎉 Account created successfully!';
+  $('authMsg').className = 'msg ok';
+  $('authMsg').classList.add('hidden');
+  setTimeout(() => screen($('home')), 1000);
+ } catch(err) {
+  playSound('fail');
+  $('authMsg').textContent = err.message;
+  $('authMsg').className = 'msg bad';
+  $('authMsg').classList.remove('hidden');
+ }
+};
 
-   if(statusType === 'accepted'){
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(4,9,20,0.7); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="position:relative; width:44px; height:44px;">
-          <img src="${tAvatar}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; margin:4px;" />
-          <div class="user-frame-overlay ${tFrame}" style="border-width:2px;"></div>
-        </div>
-        <div><b>${safe(uData.name)}</b><div style="font-size:11px; color:var(--text-muted);">${uData.playerId || '#TG'}</div></div>
-      </div>
-      <div style="display:flex; gap:5px;">
-        <button class="btn-gold" style="margin:0; padding:6px 12px; font-size:12px; width:auto;" onclick="openPrivateChat('${targetUid}', '${safe(uData.name)}')">💬 مراسلة</button>
-        <button class="secondary" style="margin:0; padding:6px 12px; font-size:12px; width:auto;" onclick="openPlayerModal('${targetUid}')">👤 الملف</button>
-      </div>
-    </div>`;
-   } else {
-    const isIncoming = item.actionBy !== user.uid;
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(4,9,20,0.7); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="position:relative; width:44px; height:44px;">
-          <img src="${tAvatar}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; margin:4px;" />
-          <div class="user-frame-overlay ${tFrame}" style="border-width:2px;"></div>
-        </div>
-        <div><b>${safe(uData.name)}</b><div style="font-size:11px; color:var(--text-muted);">${isIncoming?'طلب وارد':'طلب صادر'}</div></div>
-      </div>
-      <div style="display:flex; gap:5px;">
-        ${isIncoming ? `<button class="btn-green" style="margin:0; padding:6px 12px; font-size:12px; width:auto;" onclick="handleFriendAction('${item.relId}', 'accept')">قبول</button>` : ''}
-        <button class="btn-red" style="margin:0; padding:6px 12px; font-size:12px; width:auto;" onclick="handleFriendAction('${item.relId}', 'reject')">رفض</button>
-      </div>
-    </div>`;
+onAuthStateChanged(auth, async (u) => {
+ user = u;
+ if(user) {
+  $('openAuthFromProfile').classList.add('hidden');
+  try {
+   const docSnap = await getDoc(doc(db, 'users', user.uid));
+   if(docSnap.exists()){
+    const d = docSnap.data();
+    name = d.name || name;
+    userCoins = d.userCoins ?? userCoins;
+    userRankPoints = Math.max(50, d.userRankPoints ?? userRankPoints);
+    userBestSolo = d.userBestSolo ?? userBestSolo;
+    userTotalRounds = d.userTotalRounds ?? userTotalRounds;
+    userAvatarSeed = d.userAvatarSeed || userAvatarSeed;
+    equippedFrame = d.equippedFrame || equippedFrame;
+    unlockedFrames = d.unlockedFrames || unlockedFrames;
    }
-  }
-  container.innerHTML = html;
- } catch(e) { container.innerHTML = '<div class="bad center">Error loading data</div>'; }
-}
+  } catch(e){}
+ } else {
+  $('openAuthFromProfile').classList.remove('hidden');
+ }
+ updateUI();
+});
 
-window.handleFriendAction = async(relId, action) => {
- const ref = doc(db, 'relations', relId);
- if(action === 'accept') await updateDoc(ref, { status: 'accepted', updatedAt: serverTimestamp() });
- else await deleteDoc(ref);
- loadFriendsTab('pending');
-};
-
-window.openPrivateChat = (targetUid, targetName) => {
- activePMUid = targetUid;
- $('pmTargetName').textContent = targetName;
- $('pmModal').classList.remove('hidden');
- listenPrivateChat();
-};
-
-function listenPrivateChat(){
- if(uPM) uPM();
- const chatId = [user.uid, activePMUid].sort().join('_');
- const q = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt', 'asc'));
- uPM = onSnapshot(q, snap => {
-  let h = '';
-  snap.forEach(x => {
-   const m = x.data();
-   h += `<div><div style="font-size:11px; color:var(--text-muted); margin:2px 6px;">${safe(m.senderName)}</div><div class="chat-bubble ${m.senderUid === user.uid ? 'mine' : ''}">${safe(m.text)}</div></div>`;
-  });
-  $('pmChatBox').innerHTML = h || `<div class="center muted" style="padding:30px; color:var(--text-muted);">لا توجد رسائل سابقة</div>`;
-  $('pmChatBox').scrollTop = $('pmChatBox').scrollHeight;
- });
-}
-
-$('btnSendPM').onclick = async() => {
- const text = $('pmInput').value.trim();
- if(!text || !activePMUid) return;
- const chatId = [user.uid, activePMUid].sort().join('_');
- $('pmInput').value = '';
- await addDoc(collection(db, 'chats', chatId, 'messages'), {
-  senderUid: user.uid, senderName: name || 'Player', text, createdAt: serverTimestamp()
- });
-};
-
-$('closePMModal').onclick = () => {
- if(uPM) uPM(); uPM = null;
- $('pmModal').classList.add('hidden');
-};
-
+$('showFriends').onclick = () => { playSound('click'); screen($('friendsScreen')); };
 $('backFromFriends').onclick = () => screen($('home'));
-
-// Leaderboard
-$('showLeaderboard').onclick = async() => {
- if(isGuest){ alert('يجب تسجيل الدخول لعرض لوحة الشرف!'); screen($('auth')); return; }
- screen($('leaderboard'));
- $('searchPlayer').value='';
- $('leaderboardList').innerHTML = '<div class="center muted" style="padding:30px; color:var(--text-muted);">جاري تحميل الأبطال...</div>';
- try{
-  const q = query(collection(db,'users'), orderBy('points','desc'), limit(50));
-  const snap = await getDocs(q);
-  allUsersCache = [];
-  snap.forEach(docSnap => { allUsersCache.push({id:docSnap.id, ...docSnap.data()}); });
-  renderLeaderboard(allUsersCache);
- }catch(e){ $('leaderboardList').innerHTML='<div class="bad">Error loading leaderboard</div>'; }
+$('tabMyFriends').onclick = () => {
+ playSound('click');
+ $('tabMyFriends').className = 'btn-green';
+ $('tabPendingReqs').className = 'secondary';
+ $('friendsListContainer').innerHTML = `<div class="center muted" style="color:var(--text-muted); padding:30px;">${currentLang==='ar'?'قائمة أصدقائك فارغة حالياً. ابحث عن لاعبين وأضفهم!':'Your friends list is empty.'}</div>`;
+};
+$('tabPendingReqs').onclick = () => {
+ playSound('click');
+ $('tabPendingReqs').className = 'btn-green';
+ $('tabMyFriends').className = 'secondary';
+ $('friendsListContainer').innerHTML = `<div class="center muted" style="color:var(--text-muted); padding:30px;">${currentLang==='ar'?'لا توجد طلبات صداقة معلقة.':'No pending friend requests.'}</div>`;
 };
 
-function renderLeaderboard(list){
- let html='', rank=1;
- list.forEach(d => {
-   const pts = d.points || 0;
-   const pTag = d.playerId || ('#TG-'+d.id.substring(0,6).toUpperCase());
-   const lAvatar = getAvatarUrl(d.name, pTag);
-   const lFrame = getActiveFrameClass(d.activeFrame || 'default', pts);
-
-   html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(4,9,20,0.7); border:1px solid rgba(255,255,255,0.06); border-radius:14px; margin-bottom:8px; cursor:pointer;" onclick="openPlayerModal('${d.id}')">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span style="color:var(--gold-glow); font-weight:bold;">#${rank}</span>
-      <div style="position:relative; width:48px; height:48px;">
-        <img src="${lAvatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin:4px;" />
-        <div class="user-frame-overlay ${lFrame}" style="border-width:2px;"></div>
-      </div>
-      <div><b>${safe(d.name||'Player')}</b><div style="margin-top:3px">${getTierBadge(pts)}</div></div>
-    </div>
-    <span style="text-align:left"><div style="color:var(--cyan-glow); font-weight:900;">${pts} pts</div><small style="color:var(--text-muted);">${pTag}</small></span>
-   </div>`;
-   rank++;
- });
- $('leaderboardList').innerHTML = html || `<div class="center muted" style="color:var(--text-muted); padding:30px;">لا يوجد لاعبون متاحون</div>`;
-}
-
-window.openPlayerModal = async(uid) => {
- activeModalUid = uid;
- const p = allUsersCache.find(x => x.id === uid);
- if(!p) return;
- const mPts = p.points || 0;
- const mTag = p.playerId || ('#TG-'+uid.substring(0,6).toUpperCase());
- 
- $('modalName').textContent = safe(p.name||'Player');
- $('modalPlayerId').textContent = 'ID: ' + mTag;
- $('modalTier').innerHTML = getTierBadge(mPts);
- $('modalPoints').textContent = mPts;
- $('modalBestSolo').textContent = (p.bestSolo==null||p.bestSolo===999)?'—':Number(p.bestSolo).toFixed(2)+' s';
- $('modalSoloRounds').textContent = p.soloRounds||0;
-
- updateAvatarAndFrame($('modalAvatarImg'), $('modalFrameOverlay'), mPts, p.activeFrame || 'default', p.name || 'Player', mTag);
-
- $('friendStatusMsg').classList.add('hidden');
- if(uid === user?.uid){
-  $('modalActions').classList.add('hidden');
-  $('btnOpenPrivateChat').classList.add('hidden');
- } else {
-  $('modalActions').classList.remove('hidden');
-  await checkRelationStatus(uid);
- }
- $('playerModal').classList.remove('hidden');
-};
-
-async function checkRelationStatus(targetUid){
- const relId = [user.uid, targetUid].sort().join('_');
- const s = await getDoc(doc(db, 'relations', relId));
- const btnReq = $('btnFriendReq'), btnBlock = $('btnBlock');
- btnReq.disabled = false; btnBlock.disabled = false;
- $('btnOpenPrivateChat').classList.add('hidden');
- if(!s.exists()){
-  btnReq.textContent = '➕ طلب صداقة'; btnReq.className = 'btn-green';
-  btnBlock.textContent = '🚫 حظر'; btnBlock.className = 'btn-red';
-  return;
- }
- const rel = s.data();
- if(rel.status === 'blocked'){
-  if(rel.blockedBy === user.uid){ btnReq.textContent = 'Blocked'; btnReq.disabled = true; btnBlock.textContent = 'إلغاء الحظر'; btnBlock.className = 'btn-gold'; }
-  else { btnReq.textContent = 'محظور'; btnReq.disabled = true; btnBlock.disabled = true; }
-  return;
- }
- if(rel.status === 'pending'){
-  if(rel.actionBy === user.uid){ btnReq.textContent = '⏳ قيد الانتظار'; btnReq.disabled = true; }
-  else { btnReq.textContent = '✅ قبول الطلب'; btnReq.className = 'btn-green'; }
-  return;
- }
- if(rel.status === 'accepted'){
-  btnReq.textContent = '🤝 أصدقاء (إزالة)'; btnReq.className = 'secondary';
-  btnBlock.textContent = '🚫 حظر'; btnBlock.className = 'btn-red';
-  $('btnOpenPrivateChat').classList.remove('hidden');
-  $('btnOpenPrivateChat').onclick = () => openPrivateChat(targetUid, $('modalName').textContent);
- }
-}
-
-$('btnFriendReq').onclick = async() => {
- if(!activeModalUid || activeModalUid === user.uid) return;
- const relId = [user.uid, activeModalUid].sort().join('_');
- const ref = doc(db, 'relations', relId);
- const s = await getDoc(ref);
- if(!s.exists()){
-  await setDoc(ref, { user1: user.uid, user2: activeModalUid, status: 'pending', actionBy: user.uid, updatedAt: serverTimestamp() });
-  message($('friendStatusMsg'), 'تم إرسال طلب الصداقة! ✅', true);
- } else {
-  const rel = s.data();
-  if(rel.status === 'pending' && rel.actionBy !== user.uid){
-   await updateDoc(ref, { status: 'accepted', actionBy: user.uid, updatedAt: serverTimestamp() });
-   message($('friendStatusMsg'), 'تم قبول طلب الصداقة! 🤝', true);
-  } else if(rel.status === 'accepted'){
-   await deleteDoc(ref);
-   message($('friendStatusMsg'), 'تمت إزالة الصداقة', false);
-  }
- }
- await checkRelationStatus(activeModalUid);
-};
-
-$('btnBlock').onclick = async() => {
- if(!activeModalUid || activeModalUid === user.uid) return;
- const relId = [user.uid, activeModalUid].sort().join('_');
- const ref = doc(db, 'relations', relId);
- const s = await getDoc(ref);
- if(s.exists() && s.data().status === 'blocked' && s.data().blockedBy === user.uid){
-  await deleteDoc(ref);
-  message($('friendStatusMsg'), 'تم إلغاء الحظر ✅', true);
- } else {
-  await setDoc(ref, { user1: user.uid, user2: activeModalUid, status: 'blocked', blockedBy: user.uid, actionBy: user.uid, updatedAt: serverTimestamp() });
-  message($('friendStatusMsg'), 'تم حظر اللاعب! 🚫', false);
- }
- await checkRelationStatus(activeModalUid);
-};
-
-$('closeModal').onclick = () => $('playerModal').classList.add('hidden');
-$('searchPlayer').oninput = (e) => {
- const val = e.target.value.trim().toLowerCase();
- const filtered = allUsersCache.filter(u => (u.name||'').toLowerCase().includes(val) || (u.playerId||'').toLowerCase().includes(val));
- renderLeaderboard(filtered);
-};
-$('backFromLB').onclick = () => screen($('home'));
-
-// دالة منح عملات ذهبية + XP + تحديث الجولات لكل جولة تُلعب
-async function addGameRewardsAndSoloStats(diff) {
- let bestSolo = 999, soloRounds = 0, currentExp = 0, coins = 0;
-
- if(!isGuest && user && isOnlineMode){
-  const s = await getDoc(doc(db,'users',user.uid));
-  if(s.exists()){ const d = s.data(); bestSolo = d.bestSolo??999; soloRounds = d.soloRounds||0; currentExp = d.exp || 0; coins = d.coins || 0; }
- } else {
-  bestSolo = parseFloat(localStorage.getItem('local_bestSolo') || '999');
-  soloRounds = parseInt(localStorage.getItem('local_soloRounds') || '0');
-  currentExp = parseInt(localStorage.getItem('local_exp') || '0');
-  coins = parseInt(localStorage.getItem('local_coins') || '0');
- }
-
- const newBest = Math.min(bestSolo, diff);
- soloRounds += 1;
- currentExp += 20; // +20 XP
- coins += 50; // مكافأة عملات ذهبية لكل جولة تُلعب
-
- if(!isGuest && user && isOnlineMode){
-  await setDoc(doc(db,'users',user.uid),{ bestSolo: newBest, soloRounds, exp: currentExp, coins },{merge:true});
- } else {
-  localStorage.setItem('local_bestSolo', newBest);
-  localStorage.setItem('local_soloRounds', soloRounds);
-  localStorage.setItem('local_exp', currentExp);
-  localStorage.setItem('local_coins', coins);
- }
- await loadSoloStats();
-}
-
-// Solo Game Engine
-function randomTarget(){ return Number((3+Math.random()*7).toFixed(2)); }
-
-function newSolo(){
- if(autoStopTimer) clearTimeout(autoStopTimer);
- soloTarget = randomTarget();
- $('soloTimer').textContent = '00.00';
- $('soloInstruction').textContent = 'اضغط ابدأ لإطلاق العداد الأركيدي.';
- $('soloStart').classList.remove('hidden');
- $('soloStop').classList.add('hidden');
- $('writeGuessArea').classList.add('hidden');
- $('soloNext').classList.add('hidden');
- $('soloResult').classList.add('hidden');
- $('guessedTimeInput').value = '';
-
- if(soloMode === 'blind'){
-  $('soloGameTitle').textContent = '👁️ التحدي الأعمى (Blind Challenge)';
-  $('targetBox').classList.remove('hidden');
-  $('soloTarget').textContent = soloTarget.toFixed(2);
-  $('timerSubtext').textContent = 'العداد مخفي... أوقف عند الهدف بدقة!';
- } else {
-  $('soloGameTitle').textContent = '✍️ تحدي التخمين بالكتابة';
-  $('targetBox').classList.add('hidden');
-  $('timerSubtext').textContent = 'سيتوقف الوقت تلقائياً... خمن كم مر من الوقت!';
- }
-}
-
-$('soloBlind').onclick = () => { soloMode='blind'; audio(); screen($('soloGame')); newSolo(); };
-$('soloWrite').onclick = () => { soloMode='write'; audio(); screen($('soloGame')); newSolo(); };
-
-$('soloStart').onclick = () => {
- audio(); startSound();
- soloStart = performance.now();
- $('soloStart').classList.add('hidden');
- $('soloTimer').classList.add('running');
-
- if(soloMode === 'blind'){
-  $('soloStop').classList.remove('hidden');
-  $('soloInstruction').textContent = 'الوقت يحسب الآن... اضغط أوقف عندما تظن أنك وصلت للهدف!';
- } else {
-  $('soloInstruction').textContent = 'الوقت يحسب بكتمان... انتظر التوقف التلقائي!';
-  autoStopTimer = setTimeout(()=>{
-   soloElapsedTime = soloTarget;
-   $('soloTimer').classList.remove('running');
-   stopSound();
-   $('writeGuessArea').classList.remove('hidden');
-   $('soloInstruction').textContent = 'توقف الوقت تلقائياً! اكتب كم ثانية مرت:';
-  }, soloTarget * 1000);
- }
-};
-
-$('soloStop').onclick = () => {
- soloElapsedTime = Number(((performance.now()-soloStart)/1000).toFixed(2));
- $('soloTimer').classList.remove('running');
- $('soloStop').classList.add('hidden');
- stopSound();
- evaluateSoloResult(soloElapsedTime, soloElapsedTime);
-};
-
-$('submitWrittenGuess').onclick = () => {
- const val = parseFloat($('guessedTimeInput').value);
- if(isNaN(val) || val <= 0) return alert('أدخل رقماً صحيحاً صالحاً!');
- evaluateSoloResult(soloElapsedTime, val);
-};
-
-async function evaluateSoloResult(actual, guessedVal){
- const diff = Number(Math.abs(guessedVal - actual).toFixed(2));
- let ratingText = '';
- if(diff <= 0.50){ ratingText = '🎯 إصابة أسطورية! (PERFECT)'; }
- else if(diff <= 1.50){ ratingText = '👏 أداء ممتاز!'; }
- else if(diff <= 2.99){ ratingText = '👍 استجابة جيدة!'; }
- else if(diff <= 4.99){ ratingText = '⚡ أداء متوسط'; }
- else { ratingText = '⚠️ فارق كبير في التوقيت'; }
-
- await addGameRewardsAndSoloStats(diff);
-
- $('writeGuessArea').classList.add('hidden');
- $('soloNext').classList.remove('hidden');
- $('soloResult').classList.remove('hidden');
-
- $('soloResult').innerHTML = `<div style="font-size:22px; font-weight:900; text-align:center; color:var(--green-glow); margin-bottom:6px;">${ratingText}</div>`+
-   `<div class="center">الفارق الزمني: <b>${diff.toFixed(2)}</b> ثانية</div>`+
-   `<div class="center" style="color:var(--gold-glow); font-weight:900; margin-top:5px;">⭐ مكتسبات: +20 XP | 🪙 +50 عملة ذهبية</div>`;
-
- if(diff <= 0.50){ perfectSound(); speak('Amazing!'); } else { winSound(); }
-}
-
-$('soloNext').onclick = () => { audio(); newSolo(); };
-$('soloBack').onclick = () => {
- if(autoStopTimer) clearTimeout(autoStopTimer);
- $('soloTimer').classList.remove('running');
- screen($('home'));
-};
-
-// Ranked 1v1 Matchmaking Engine (احتساب النتائج فقط بعد إنهاء اللاعبين تماماً من إيقاف المؤقت)
-$('startRankedBtn').onclick = async() => {
- if(!isOnlineMode || isGuest){
-  alert('الوضع المصنف يتطلب تسجيل الدخول وتوفر اتصال إنترنت!');
-  if(isGuest) screen($('auth'));
-  return;
- }
- audio();
- screen($('rankedMatchScreen'));
- $('rankedMatchMakingBox').classList.remove('hidden');
- $('rankedGameBox').classList.add('hidden');
- $('rankedStatusText').textContent = 'جاري البحث عن خصم متاح...';
- 
- try {
-  const q = query(collection(db, 'ranked_matches'), where('status', '==', 'waiting'), limit(1));
-  const snap = await getDocs(q);
-  
-  if(!snap.empty){
-   const matchDoc = snap.docs[0];
-   currentRankedMatchId = matchDoc.id;
-   await updateDoc(doc(db, 'ranked_matches', currentRankedMatchId), {
-    player2: { uid: user.uid, name: name || 'Player 2', diff: null, elapsed: null },
-    status: 'playing',
-    startedAt: serverTimestamp()
-   });
-   startRankedMatchListener(currentRankedMatchId);
-  } else {
-   const newMatchRef = doc(collection(db, 'ranked_matches'));
-   currentRankedMatchId = newMatchRef.id;
-   const target = randomTarget();
-   await setDoc(newMatchRef, {
-    player1: { uid: user.uid, name: name || 'Player 1', diff: null, elapsed: null },
-    player2: null,
-    target: target,
-    status: 'waiting',
-    winnerUid: null,
-    createdAt: serverTimestamp()
-   });
-   startRankedMatchListener(currentRankedMatchId);
-  }
- } catch(e) {
-  alert('حدث خطأ أثناء بدء المعركة المصنفة');
-  screen($('home'));
- }
-};
-
-function startRankedMatchListener(matchId){
- rankedSubmitted = false;
- if(uRanked) uRanked();
- uRanked = onSnapshot(doc(db, 'ranked_matches', matchId), async (snap) => {
-  if(!snap.exists()) return;
-  const m = snap.data();
-  
-  if(m.status === 'waiting'){
-   $('rankedStatusText').textContent = 'في انتظار انضمام منافس لغرفة المعركة...';
-  } else if(m.status === 'playing'){
-   $('rankedMatchMakingBox').classList.add('hidden');
-   $('rankedGameBox').classList.remove('hidden');
-   $('rankedTarget').textContent = Number(m.target).toFixed(2);
-   
-   $('rPlayer1Name').textContent = safe(m.player1.name);
-   $('rPlayer2Name').textContent = safe(m.player2 ? m.player2.name : 'الخصم المرتقب');
-   
-   $('rPlayer1Status').textContent = m.player1.diff !== null ? `أنهى (${m.player1.elapsed}s)` : '⏳ يلعب...';
-   $('rPlayer2Status').textContent = (m.player2 && m.player2.diff !== null) ? `أنهى (${m.player2.elapsed}s)` : '⏳ يلعب...';
-   
-   if(!rankedSubmitted){
-    $('rankedStart').classList.remove('hidden');
-    $('rankedStop').classList.add('hidden');
-    $('rankedInstruction').textContent = 'اضغط ابدأ لإطلاق العداد الفردي!';
-   }
-   
-   // التحقق من إنهاء كلا اللاعبين للمؤقت تماماً قبل احتساب النتائج
-   if(m.player1.diff !== null && m.player2 && m.player2.diff !== null && m.status !== 'finished'){
-    if(m.player1.uid === user.uid){
-     evaluateRankedWinner(m);
-    }
-   }
-  } else if(m.status === 'finished'){
-   showRankedFinalResults(m);
-  }
- });
-}
-
-$('rankedStart').onclick = () => {
- audio(); startSound();
- rankedMyStart = performance.now();
- $('rankedStart').classList.add('hidden');
- $('rankedStop').classList.remove('hidden');
- $('rankedTimer').classList.add('running');
- $('rankedInstruction').textContent = 'الوقت يحسب... أوقف عند الهدف بدقة متناهية!';
-};
-
-$('rankedStop').onclick = async () => {
- audio(); stopSound();
- const elapsed = Number(((performance.now() - rankedMyStart) / 1000).toFixed(2));
- $('rankedTimer').classList.remove('running');
- $('rankedStop').classList.add('hidden');
- rankedSubmitted = true;
- 
- const mSnap = await getDoc(doc(db, 'ranked_matches', currentRankedMatchId));
- const m = mSnap.data();
- const diff = Number(Math.abs(elapsed - m.target).toFixed(2));
- 
- const isP1 = m.player1.uid === user.uid;
- const updateData = isP1 
-  ? { "player1.diff": diff, "player1.elapsed": elapsed }
-  : { "player2.diff": diff, "player2.elapsed": elapsed };
-  
- await updateDoc(doc(db, 'ranked_matches', currentRankedMatchId), updateData);
- $('rankedInstruction').textContent = 'تم تسجيل توقيتك بنجاح! في انتظار إنهاء الخصم للمؤقت لاحتساب النتائج...';
-};
-
-async function evaluateRankedWinner(match){
- const p1Diff = match.player1.diff;
- const p2Diff = match.player2.diff;
- let winnerUid = 'draw';
- 
- if(p1Diff < p2Diff) winnerUid = match.player1.uid;
- else if(p2Diff < p1Diff) winnerUid = match.player2.uid;
- 
- await updateDoc(doc(db, 'ranked_matches', currentRankedMatchId), {
-  status: 'finished',
-  winnerUid: winnerUid
- });
-}
-
-async function showRankedFinalResults(m){
- $('rankedInstruction').textContent = 'انتهت المعركة المصنفة بعد إيقاف كلا اللاعبين للمؤقت!';
- $('rankedResultBox').classList.remove('hidden');
- $('rankedBackBtn').classList.remove('hidden');
- 
- const isP1 = m.player1.uid === user.uid;
- const myDiff = isP1 ? m.player1.diff : m.player2.diff;
- const oppDiff = isP1 ? m.player2.diff : m.player1.diff;
- const isWinner = m.winnerUid === user.uid;
- const isDraw = m.winnerUid === 'draw';
- 
- let resultHTML = '';
- let ptsChange = 0;
- 
- if(isDraw){
-  resultHTML = `<div style="font-size:24px; font-weight:900; text-align:center; color:var(--gold-glow); margin-bottom:8px;">🤝 تعادل ملحمي!</div>`;
-  ptsChange = +5;
- } else if(isWinner){
-  resultHTML = `<div style="font-size:24px; font-weight:900; text-align:center; color:var(--green-glow); margin-bottom:8px;">👑 انتصار ساحق!</div>`;
-  ptsChange = +25;
-  perfectSound();
- } else {
-  resultHTML = `<div style="font-size:24px; font-weight:900; text-align:center; color:var(--red-glow); margin-bottom:8px;">💔 هزيمة قاسية!</div>`;
-  ptsChange = -15;
- }
- 
- resultHTML += `<div class="center" style="margin-bottom:6px;">فارقك: <b>${myDiff}s</b> | فارق الخصم: <b>${oppDiff}s</b></div>
- <div class="center" style="color:var(--gold-glow); font-weight:900;">مكتسبات الجولة: <b>${ptsChange >= 0 ? '+'+ptsChange : ptsChange} pts</b> | +20 XP | 🪙 +50 عملة ذهبية</div>`;
- 
- $('rankedResultBox').innerHTML = resultHTML;
- 
- const uSnap = await getDoc(doc(db, 'users', user.uid));
- if(uSnap.exists()){
-  let d = uSnap.data();
-  let p = d.points || 0;
-  let ex = d.exp || 0;
-  let cn = d.coins || 0;
-  p = Math.max(0, p + ptsChange);
-  ex += 20;
-  cn += 50; // إضافة 50 عملة ذهبية
-  await updateDoc(doc(db, 'users', user.uid), { points: p, exp: ex, coins: cn });
-  loadSoloStats();
- }
-}
-
-$('cancelRankedBtn').onclick = async () => {
- if(currentRankedMatchId){
-  try{ await deleteDoc(doc(db, 'ranked_matches', currentRankedMatchId)); }catch(e){}
- }
- if(uRanked) uRanked();
- screen($('home'));
-};
-
-$('rankedBackBtn').onclick = () => {
- if(uRanked) uRanked();
- screen($('home'));
-};
-
-// Custom Rooms Logic (احتساب النتائج وإظهار النتيجة لكل لاعب بعد انتهاء جميع اللاعبين تماماً من إيقاف المؤقت + العملات الذهبية)
-$('showJoin').onclick = () => {
- if(!isOnlineMode){ alert('الغرف الجماعية تتطلب اتصالاً بالإنترنت!'); return; }
- $('joinPanel').classList.toggle('hidden');
- $('roomInput').focus();
-};
-
-$('create').onclick = async() => {
- if(!isOnlineMode){ alert('الغرف الجماعية تتطلب اتصالاً بالإنترنت!'); return; }
- try{
-  audio(); $('create').disabled = true;
-  let c = roomCode(), r = doc(db,'rooms',c), s = await getDoc(r);
-  while(s.exists()){ c = roomCode(); r = doc(db,'rooms',c); s = await getDoc(r); }
-  await setDoc(r, { hostId: user?.uid || 'guest', hostName: name || 'Player', status: 'waiting', round: 0, target: 0, startedAt: null, createdAt: serverTimestamp() });
-  await setDoc(doc(db,'rooms',c,'players', user?.uid || 'guest'), { uid: user?.uid || 'guest', name: name || 'Player', score: 0, online: true, joinedAt: serverTimestamp() });
-  enterRoom(c);
- }catch(e){ message($('homeMsg'), 'Error creating room'); }
- finally{ $('create').disabled = false; }
-};
-
-$('join').onclick = async() => {
- if(!isOnlineMode){ alert('الغرف الجماعية تتطلب اتصالاً بالإنترنت!'); return; }
- try{
-  audio();
-  const c = $('roomInput').value.trim().toUpperCase();
-  if(c.length !== 6) return message($('homeMsg'), 'رمز الغرفة غير صالح');
-  const r = doc(db,'rooms',c), s = await getDoc(r);
-  if(!s.exists()) return message($('homeMsg'), 'الغرفة غير موجودة');
-  await setDoc(doc(db,'rooms',c,'players', user?.uid || 'guest'), { uid: user?.uid || 'guest', name: name || 'Player', score: 0, online: true, joinedAt: serverTimestamp() }, {merge:true});
-  enterRoom(c);
- }catch(e){ message($('homeMsg'), 'Error joining room'); }
-};
-
-function enterRoom(c){ roomId = c; $('roomCode').textContent = c; screen($('room')); startListeners(); }
-function stopListeners(){ if(uRoom)uRoom(); if(uPlayers)uPlayers(); if(uChat)uChat(); uRoom=uPlayers=uChat=null; }
-
-function startListeners(){
- stopListeners();
- uRoom = onSnapshot(doc(db,'rooms',roomId), s => { if(!s.exists()){leaveLocal();return;} roomData = s.data(); updateRoomUI(); });
- uPlayers = onSnapshot(collection(db,'rooms',roomId,'players'), s => {
-  const a = []; s.forEach(x => a.push({id:x.id, ...x.data()}));
-  a.sort((x,y)=>(y.score||0)-(x.score||0));
-  $('playerCount').textContent = a.length + ' لاعبين';
-  $('players').innerHTML = a.map((p,i)=> '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(4,9,20,0.7); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); margin-top:6px;"><span>'+(i===0?'👑 ':'')+'<b>'+safe(p.name||'Player')+'</b></span><span style="color:var(--cyan-glow); font-weight:900;">⭐ '+Number(p.score||0)+'</span></div>').join('');
- });
- uChat = onSnapshot(query(collection(db,'rooms',roomId,'messages'), orderBy('createdAt','asc')), s => {
-  let h = ''; s.forEach(x => { const m = x.data(); h += '<div><div style="font-size:11px; color:var(--text-muted); margin:2px 6px;">'+safe(m.name||'Player')+'</div><div class="chat-bubble '+(m.uid===user?.uid?'mine':'')+ '">'+safe(m.text||'')+'</div></div>'; });
-  $('chat').innerHTML = h || '<div class="center muted" style="color:var(--text-muted); padding:30px;">لا توجد رسائل بعد</div>';
-  $('chat').scrollTop = $('chat').scrollHeight;
- });
-}
-
-function updateRoomUI(){
- const r = roomData; if(!r) return;
- $('roomTarget').textContent = r.target ? Number(r.target).toFixed(2) : '—';
- if(r.round !== lastRound){ lastRound = r.round; roomSubmittedRound = -1; $('roomResult').classList.add('hidden'); }
- $('roomStart').disabled = (user?.uid || 'guest') !== r.hostId;
- $('roomStart').classList.toggle('hidden', !(r.status==='waiting'||r.status==='result'));
- $('nextRound').classList.toggle('hidden', !(r.status==='result' && (user?.uid || 'guest')===r.hostId));
- $('roomStop').classList.toggle('hidden', r.status!=='running');
-
- if(r.status==='waiting'){
-  $('roomInstruction').textContent = (user?.uid || 'guest')===r.hostId ? 'أنت مضيف الغرفة. اضغط بدء الجولة عندما تكون مستعداً.' : 'في انتظار المضيف لبدء الجولة...';
-  $('roomTimer').textContent = '00.00';
- } else if(r.status==='running'){
-  $('roomInstruction').textContent = '🎯 أوقف الوقت عند الهدف المشترك بدقة!';
-  $('roomTimer').textContent = '00.00';
-  $('roomTimer').classList.add('running');
- } else if(r.status==='result'){
-  $('roomTimer').classList.remove('running');
-  $('roomResult').classList.remove('hidden');
-  $('roomResult').innerHTML = `<div style="font-size:22px; font-weight:900; text-align:center; color:var(--green-glow); margin-bottom:6px;">🏆 الفائز بالجولة: ${safe(r.winnerName||'Player')}</div>`+
-    `<div class="center" style="color:var(--cyan-glow); margin-bottom:4px;">نتيجة الفارق لك: <b>${r.myDifference ?? '—'}s</b></div>`+
-    `<div class="center" style="color:var(--gold-glow); font-weight:900;">⭐ +${r.winnerPoints||0} نقطة غرفة | 🪙 +50 عملة ذهبية مكتسبة</div>`;
- }
-}
-
-$('roomStart').onclick = async() => {
- if(!roomData) return;
- audio(); startSound();
- const target = randomTarget();
- await updateDoc(doc(db,'rooms',roomId),{ status:'running', round:Number(roomData.round||0)+1, target, startedAt:serverTimestamp() });
-};
-
-$('roomStop').onclick = async() => {
- if(!roomData || roomData.status!=='running' || roomSubmittedRound===roomData.round) return;
- audio(); stopSound();
- const started = roomData.startedAt?.toMillis?.() || Date.now();
- const actual = Number(((Date.now()-started)/1000).toFixed(2));
- const difference = Number(Math.abs(actual-Number(roomData.target)).toFixed(2));
- roomSubmittedRound = roomData.round;
- $('roomStop').disabled = true;
- try{
-  await setDoc(doc(db,'rooms',roomId,'results', user?.uid || 'guest'), { uid: user?.uid || 'guest', name: name || 'Player', round: roomData.round, actual, difference, submittedAt: serverTimestamp() }, {merge:true});
-  
-  // منح مكافأة الجولة (XP + 50 عملة ذهبية)
-  let currentExp = 0, currentCoins = 0;
-  if(!isGuest && user && isOnlineMode){
-   const s = await getDoc(doc(db,'users',user.uid));
-   if(s.exists()){ currentExp = s.data().exp || 0; currentCoins = s.data().coins || 0; }
-   currentExp += 20;
-   currentCoins += 50;
-   await updateDoc(doc(db,'users',user.uid), { exp: currentExp, coins: currentCoins });
-  } else {
-   currentExp = parseInt(localStorage.getItem('local_exp') || '0') + 20;
-   currentCoins = parseInt(localStorage.getItem('local_coins') || '0') + 50;
-   localStorage.setItem('local_exp', currentExp);
-   localStorage.setItem('local_coins', currentCoins);
-  }
-  loadSoloStats();
-
-  // محاولة احتساب النتائج بعد انتهاء جميع اللاعبين تماماً من إيقاف المؤقت
-  await tryFinishRoomRound(roomData.round);
- }catch(e){ roomSubmittedRound = -1; $('roomStop').disabled = false; }
-};
-
-async function tryFinishRoomRound(round){
- try{
-  const rs = await getDoc(doc(db,'rooms',roomId)); if(!rs.exists()) return;
-  const r = rs.data(); if(r.status!=='running' || Number(r.round)!==Number(round)) return;
-  const ps = await getDocs(collection(db,'rooms',roomId,'players'));
-  const gs = await getDocs(collection(db,'rooms',roomId,'results'));
-  const players = [], results = [];
-  ps.forEach(x => players.push({id:x.id, ...x.data()}));
-  gs.forEach(x => { const d = x.data(); if(Number(d.round)===Number(round)) results.push({id:x.id, ...d}); });
-  
-  // عدم احتساب النتائج حتى ينتهي كافة اللاعبين من إيقاف المؤقت تماماً
-  if(results.length < players.length) return;
-  
-  results.sort((a,b)=>Number(a.difference)-Number(b.difference));
-  const w = results[0]; if(!w) return;
-  const points = 20;
-  const myRes = results.find(x => x.uid === (user?.uid || 'guest'));
-
-  await runTransaction(db, async tx => {
-   const ref = doc(db,'rooms',roomId);
-   tx.update(ref, { 
-    status:'result', 
-    winnerId:w.uid, 
-    winnerName:w.name, 
-    winnerPoints:points,
-    myDifference: myRes ? myRes.difference : 0
-   });
-   const playerRef = doc(db,'rooms',roomId,'players',w.uid);
-   const playerSnap = await tx.get(playerRef);
-   const oldScore = playerSnap.exists() ? Number(playerSnap.data().score||0) : 0;
-   tx.update(playerRef, { score: oldScore + points });
-  });
-  winSound();
- }catch(e){}
-}
-
-$('nextRound').onclick = async() => {
- if(!roomData) return;
- audio();
- await updateDoc(doc(db,'rooms',roomId), { status:'waiting', target:0, startedAt:null });
- $('roomStop').disabled = false;
-};
-
-$('copy').onclick = async() => { await navigator.clipboard.writeText(roomId); message($('roomMsg'), 'تم نسخ رمز الغرفة بنجاح 📋', true); };
-$('refreshRoom').onclick = () => message($('roomMsg'), 'الاتصال بالحرم الأركيدي نشط ✅', true);
-
-async function sendChat(){
- const t = $('chatInput').value.trim(); if(!t || !roomId) return;
- audio(); tone(800,.05,'sine');
- await addDoc(collection(db,'rooms',roomId,'messages'), { uid: user?.uid || 'guest', name: name || 'Player', text: t, createdAt: serverTimestamp() });
- $('chatInput').value = '';
-}
-$('sendChat').onclick = sendChat;
-$('chatInput').onkeydown = e => { if(e.key==='Enter') sendChat(); };
-
-$('leave').onclick = async() => { leaveLocal(); };
-function leaveLocal(){ stopListeners(); roomId = null; roomData = null; lastRound = -1; roomSubmittedRound = -1; $('roomCode').textContent = '------'; screen($('home')); }
-
-document.addEventListener('pointerdown',()=>{try{audio()}catch(e){}},{once:true});
+setLanguage(currentLang);
+updateUI();
 </script>
+</body>
 </html>
